@@ -159,7 +159,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         },
         body: JSON.stringify({ sessionId }),
       });
-    } catch (err) {
+    } catch (err: unknown) {
       console.warn("Failed to end session via API:", err);
     }
   }, []);
@@ -308,7 +308,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
             }
           }
         }, 100);
-      } catch (err) {
+      } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Connection failed";
         setError(message);
         setConnectionState("error");

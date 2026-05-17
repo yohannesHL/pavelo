@@ -168,10 +168,11 @@ export const billingRouter = router({
         }
 
         event = JSON.parse(rawBody);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Unknown error";
         throw new TRPCError({
           code: "UNAUTHORIZED",
-          message: `Stripe webhook signature verification failed: ${err.message}`,
+          message: `Stripe webhook signature verification failed: ${message}`,
         });
       }
 
@@ -179,7 +180,9 @@ export const billingRouter = router({
 
       switch (type) {
         case "invoice.paid": {
-          const agencyId = (data.object as any).metadata?.agencyId;
+          const obj = data.object as Record<string, unknown>;
+          const metadata = obj.metadata as Record<string, string> | undefined;
+          const agencyId = metadata?.agencyId;
           if (agencyId) {
             await prisma.subscription.updateMany({
               where: { agencyId },
@@ -190,8 +193,10 @@ export const billingRouter = router({
         }
 
         case "customer.subscription.updated": {
-          const agencyId = (data.object as any).metadata?.agencyId;
-          const status = (data.object as any).status;
+          const obj = data.object as Record<string, unknown>;
+          const metadata = obj.metadata as Record<string, string> | undefined;
+          const agencyId = metadata?.agencyId;
+          const status = obj.status as string | undefined;
           if (agencyId) {
             await prisma.subscription.updateMany({
               where: { agencyId },
@@ -204,7 +209,9 @@ export const billingRouter = router({
         }
 
         case "customer.subscription.deleted": {
-          const agencyId = (data.object as any).metadata?.agencyId;
+          const obj = data.object as Record<string, unknown>;
+          const metadata = obj.metadata as Record<string, string> | undefined;
+          const agencyId = metadata?.agencyId;
           if (agencyId) {
             await prisma.subscription.updateMany({
               where: { agencyId },
@@ -238,7 +245,7 @@ export const billingRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Only admins or agents can record usage" });
       }
 
-      const updates: any = {};
+      const updates: Record<string, { increment: number }> = {};
       if (input.voiceMinutes) {
         updates.voiceMinutes = { increment: input.voiceMinutes };
       }

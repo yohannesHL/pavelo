@@ -7,13 +7,14 @@
 
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import type { Prisma } from "@prisma/client";
 import { router, protectedProcedure } from "../router-helpers.js";
 import { prisma } from "../lib/prisma.js";
 
 // --- Helper: verify agency membership ---
 
 async function verifyAgencyMember(userId: string, agencyId?: string) {
-  const where: any = { userId };
+  const where: Prisma.AgencyMemberWhereInput = { userId };
   if (agencyId) where.agencyId = agencyId;
 
   const member = await prisma.agencyMember.findFirst({ where });
@@ -170,7 +171,7 @@ export const agencyRouter = router({
     .query(async ({ input, ctx }) => {
       await verifyAgencyMember(ctx.userId, input.agencyId);
 
-      const where: any = { agencyId: input.agencyId };
+      const where: Prisma.LeadWhereInput = { agencyId: input.agencyId };
       if (input.status) where.status = input.status;
 
       const items = await prisma.lead.findMany({
@@ -445,7 +446,7 @@ export const agencyRouter = router({
     .query(async ({ input, ctx }) => {
       await verifyAgencyMember(ctx.userId, input.agencyId);
 
-      const where: any = { agencyId: input.agencyId };
+      const where: Prisma.HandoverWhereInput = { agencyId: input.agencyId };
       if (input.status) where.status = input.status;
 
       return prisma.handover.findMany({
@@ -690,7 +691,7 @@ export const agencyRouter = router({
       });
       const memberUserIds = agencyMembers.map((m) => m.userId);
 
-      const where: any = { userId: { in: memberUserIds } };
+      const where: Prisma.FeedbackWhereInput = { userId: { in: memberUserIds } };
       if (input.ratingFilter) where.rating = input.ratingFilter;
 
       const feedbacks = await prisma.feedback.findMany({

@@ -41,7 +41,7 @@ export interface SearchResult {
   images: string[];
   features: string[];
   searchScore: number | null;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface SearchResponse {
@@ -49,7 +49,7 @@ export interface SearchResponse {
   nextCursor: number | null;
   total: number;
   query: string;
-  filtersApplied: Record<string, any>;
+  filtersApplied: Record<string, unknown>;
 }
 
 /**
@@ -123,9 +123,10 @@ export function usePropertySearch() {
         }
         setTotal(data.total);
         setNextCursor(data.nextCursor);
-      } catch (e: any) {
-        if (e.name === "AbortError") return; // Cancelled — ignore
-        setError(e.message || "Search failed");
+      } catch (e: unknown) {
+        if (e instanceof DOMException && e.name === "AbortError") return; // Cancelled — ignore
+        const message = e instanceof Error ? e.message : "Search failed";
+        setError(message);
       } finally {
         setIsLoading(false);
       }

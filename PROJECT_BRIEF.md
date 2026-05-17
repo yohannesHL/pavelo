@@ -400,7 +400,7 @@ pavelo/
 | 7 | Visual Intelligence Components | 13–14 | ✅ **Complete** |
 | **8** | Memory, Valuation & Seller Flow | 15–16 | ✅ **Complete** |
 | 9 | Agent Dashboard, B2B & Integrations | 17–18 | ✅ **Complete** |
-| 10 | Hardening, Performance & Launch Prep | 19–20 | 🔜 **Next** |
+| 10 | Hardening, Performance & Launch Prep | 19–20 | ✅ **Complete** |
 
 ### Sprint 1 — Infrastructure Foundations ✅
 - [x] Turborepo + pnpm workspace scaffold
@@ -588,8 +588,18 @@ pavelo/
 | Feedback loop | ✅ Complete | Thumbs up/down, corrections, JSONL export |
 | Planning apps map | ✅ Complete | SVG map, status pins, impact indicators |
 | Flood risk map | ✅ Complete | Zone overlays, risk breakdown, FloodRiskBadge |
+| E2E tests | ✅ Complete | Playwright, 6 spec files, all critical flows |
+| Load tests | ✅ Complete | k6 scripts: API, WebSocket, chat sessions |
+| Voice latency | ✅ Complete | LatencyTracker, VoiceLatencyMonitor component |
+| Search caching | ✅ Complete | Redis cache layer, popular area pre-compute |
+| Security audit | ✅ Complete | OWASP Top 10, CSP headers, rate limiting |
+| Accessibility | ✅ Complete | WCAG 2.1 AA, skip link, focus-visible, ARIA |
+| Mobile / PWA | ✅ Complete | Manifest, service worker, bottom nav, responsive |
+| Observability | ✅ Complete | Trace middleware, metrics endpoint, admin dashboard |
+| Documentation | ✅ Complete | README, API docs, deployment guide |
+| Docker prod | ✅ Complete | Multi-stage Dockerfiles, compose, Nginx |
 
-> **Last updated:** Sprint 9 complete — agency admin dashboard with KPI cards, lead pipeline, team management, conversation analytics with SVG charts, human agent handover with LangGraph escalation node, CRM webhooks with HMAC-SHA256 delivery, white-label branding with live preview, Stripe billing integration, feedback loop with JSONL export, planning applications map, and flood risk map with zone overlays.
+> **Last updated:** Sprint 10 complete (FINAL) — MVP is production-ready. E2E test suite, load testing, voice latency optimization, search caching, OWASP security audit, WCAG 2.1 AA accessibility, PWA with mobile nav, observability stack, comprehensive documentation, production Docker configs, and all open bug fixes resolved.
 
 ---
 

@@ -88,7 +88,7 @@ const DEMO_VALUATION = {
     "This valuation is based on analysis of 5 comparable properties sold in the local area.\n\n" +
     "**Base Valuation:** £572,000 — derived from weighted average price per square foot of comparable sold properties, with closer properties given higher weighting.\n\n" +
     "**Adjustments:** 2 bathrooms (+£19,500), Period property (+£32,500), Garden (+£26,000)\n\n" +
-    "**Market Trend:** Rising market — a up trend adjustment has been applied.\n\n" +
+    "**Market Trend:** Rising market — an upward trend adjustment has been applied.\n\n" +
     "**Confidence:** High (78%) — based on comparable count, data quality, and market stability.\n\n" +
     "*Note: This is an AI-generated estimate for informational purposes only. We recommend obtaining a professional RICS valuation before making financial decisions.*",
   generatedAt: new Date().toISOString(),

@@ -403,7 +403,7 @@ export const useChatStore = create<ChatState>((set, get) => {
 
         if (result?.messages) {
           set({
-            messages: result.messages.map((m: any) => ({
+            messages: result.messages.map((m: { id: string; role: string; content: string; visualPayloads?: unknown[]; createdAt: string }) => ({
               id: m.id,
               role: m.role,
               content: m.content,
@@ -412,7 +412,7 @@ export const useChatStore = create<ChatState>((set, get) => {
             })),
           });
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Failed to load messages:", error);
       }
     },
@@ -445,7 +445,7 @@ export const useChatStore = create<ChatState>((set, get) => {
           return result.id;
         }
         return null;
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Failed to create conversation:", error);
         return null;
       }
@@ -464,7 +464,7 @@ export const useChatStore = create<ChatState>((set, get) => {
             ? { conversationId: null, messages: [] }
             : {}),
         }));
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Failed to delete conversation:", error);
       }
     },
@@ -483,7 +483,7 @@ export const useChatStore = create<ChatState>((set, get) => {
         if (result?.items) {
           set({ conversations: result.items });
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Failed to load conversations:", error);
       } finally {
         set({ conversationsLoading: false });
@@ -503,7 +503,7 @@ export const useChatStore = create<ChatState>((set, get) => {
         if (result) {
           set({ conversations: result });
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Failed to search conversations:", error);
       }
     },

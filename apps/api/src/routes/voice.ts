@@ -76,7 +76,7 @@ export const voiceRouter = router({
           emptyTimeout: 300, // 5 min auto-cleanup
           maxParticipants: 3, // user + agent + optional observer
         });
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Failed to create LiveKit room:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -178,7 +178,7 @@ export const voiceRouter = router({
       // Clean up LiveKit room
       try {
         await deleteRoom(session.roomName);
-      } catch (error) {
+      } catch (error: unknown) {
         // Room may already be deleted — not critical
         console.warn("Failed to delete LiveKit room:", error);
       }

@@ -13,10 +13,11 @@ import { useState, useMemo } from "react";
 
 // ─── Mock Data ───
 
-const generateMessageVolume = () => {
+const generateMessageVolume = (range: "7d" | "30d" | "90d") => {
+  const days = range === "7d" ? 7 : range === "30d" ? 30 : 90;
   const data = [];
   const now = new Date();
-  for (let i = 29; i >= 0; i--) {
+  for (let i = days - 1; i >= 0; i--) {
     const d = new Date(now.getTime() - i * 86400000);
     data.push({
       date: d.toISOString().split("T")[0],
@@ -69,7 +70,7 @@ const topQueries = [
 
 export default function AgencyAnalyticsPage() {
   const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d">("30d");
-  const messageVolume = useMemo(() => generateMessageVolume(), []);
+  const messageVolume = useMemo(() => generateMessageVolume(dateRange), [dateRange]);
   const maxMessages = Math.max(...messageVolume.map((d) => d.count));
 
   // Satisfaction mock

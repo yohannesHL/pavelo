@@ -11,6 +11,7 @@ import { appRouter, type AppRouter } from "./router.js";
 import { createContext } from "./context.js";
 import { imageRoutes } from "./routes/upload.js";
 import { websocketPlugin } from "./routes/websocket.js";
+import { registerTraceMiddleware } from "./middleware/trace.js";
 
 config();
 
@@ -19,18 +20,89 @@ const app = Fastify({
 });
 
 // --- Middleware ---
-await app.register(helmet);
+await app.register(helmet, {
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://*.supabase.co", "wss:"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+});
 await app.register(cors, {
   origin:
     process.env.NODE_ENV === "development"
       ? true
-      : ["http://localhost:3000"],
+      : (process.env.CORS_ORIGINS || "http://localhost:3000").split(","),
   credentials: true,
 });
 await app.register(rateLimit, {
   max: 100,
   timeWindow: "1 minute",
 });
+
+// --- Auth-specific rate limiting (strict: 5 req/min per IP) ---
+const AUTH_RATE_LIMIT = { max: 5, windowMs: 60_000 };
+const authAttempts = new Map<string, { count: number; resetAt: number }>();
+
+// Clean up expired entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of authAttempts) {
+    if (now > entry.resetAt) authAttempts.delete(key);
+  }
+}, 300_000);
+
+app.addHook("onRequest", async (request, reply) => {
+  const path = request.url;
+  const isAuthRoute =
+    path.includes("/trpc/auth.") ||
+    path.includes("/api/auth/") ||
+    path.includes("signUp") ||
+    path.includes("signIn") ||
+    path.includes("password-reset");
+
+  if (!isAuthRoute) return;
+
+  const ip = request.ip || request.headers["x-forwarded-for"] || "unknown";
+  const key = typeof ip === "string" ? ip : String(ip);
+  const now = Date.now();
+  const entry = authAttempts.get(key);
+
+  if (!entry || now > entry.resetAt) {
+    authAttempts.set(key, { count: 1, resetAt: now + AUTH_RATE_LIMIT.windowMs });
+    reply.header("X-RateLimit-Limit", String(AUTH_RATE_LIMIT.max));
+    reply.header("X-RateLimit-Remaining", String(AUTH_RATE_LIMIT.max - 1));
+    return;
+  }
+
+  entry.count++;
+
+  if (entry.count > AUTH_RATE_LIMIT.max) {
+    const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
+    reply.header("Retry-After", String(retryAfter));
+    reply.header("X-RateLimit-Limit", String(AUTH_RATE_LIMIT.max));
+    reply.header("X-RateLimit-Remaining", "0");
+    return reply.code(429).send({
+      error: "Too Many Requests",
+      message: `Auth rate limit exceeded. Try again in ${retryAfter}s.`,
+    });
+  }
+
+  reply.header("X-RateLimit-Limit", String(AUTH_RATE_LIMIT.max));
+  reply.header("X-RateLimit-Remaining", String(AUTH_RATE_LIMIT.max - entry.count));
+});
+
+// --- Observability (S10-08) ---
+registerTraceMiddleware(app);
 
 // --- tRPC ---
 await app.register(fastifyTRPCPlugin, {
@@ -57,6 +129,13 @@ app.get("/health", async () => {
   };
 });
 
+// --- Search Cache Metrics (S10-04) ---
+import { getSearchCacheMetrics } from "./lib/search-cache.js";
+
+app.get("/api/v1/search/cache-metrics", async () => {
+  return getSearchCacheMetrics();
+});
+
 // --- Voice Metrics REST Endpoint (S6-10) ---
 app.get("/api/v1/voice/metrics", async (request) => {
   // This is a convenience REST alias for the tRPC voice.getMetrics endpoint
@@ -72,13 +151,17 @@ app.get("/api/v1/voice/metrics", async (request) => {
 import { prisma } from "./lib/prisma.js";
 
 app.post("/api/v1/memory/profile", async (request, reply) => {
-  const body = request.body as any;
-  if (!body?.userId) {
+  const body = request.body as Record<string, unknown>;
+  if (!body?.userId || typeof body.userId !== "string") {
     return reply.code(400).send({ error: "userId required" });
   }
 
   try {
-    const { userId, lastConsolidatedAt, ...data } = body;
+    const { userId, lastConsolidatedAt, ...data } = body as {
+      userId: string;
+      lastConsolidatedAt?: string;
+      [key: string]: unknown;
+    };
     const profile = await prisma.userProfile.upsert({
       where: { userId },
       create: {
@@ -98,8 +181,9 @@ app.post("/api/v1/memory/profile", async (request, reply) => {
       },
     });
     return reply.code(200).send(profile);
-  } catch (err: any) {
-    return reply.code(500).send({ error: err.message });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return reply.code(500).send({ error: message });
   }
 });
 
@@ -107,7 +191,7 @@ app.post("/api/v1/memory/profile", async (request, reply) => {
 // Called by the Python agent service
 
 app.get("/api/v1/viewings/slots", async (request, reply) => {
-  const { propertyId, date } = request.query as any;
+  const { propertyId, date } = request.query as { propertyId?: string; date?: string };
   if (!propertyId || !date) {
     return reply.code(400).send({ error: "propertyId and date required" });
   }
@@ -127,16 +211,17 @@ app.get("/api/v1/viewings/slots", async (request, reply) => {
       },
       select: { time: true },
     });
-    const bookedTimes = new Set(booked.map((b: any) => b.time));
+    const bookedTimes = new Set(booked.map((b) => b.time));
     const available = TIME_SLOTS.filter((t) => !bookedTimes.has(t));
     return { status: "success", propertyId, date, slots: available, bookedSlots: Array.from(bookedTimes) };
-  } catch (err: any) {
-    return reply.code(500).send({ error: err.message });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return reply.code(500).send({ error: message });
   }
 });
 
 app.post("/api/v1/viewings/book", async (request, reply) => {
-  const body = request.body as any;
+  const body = request.body as { propertyId?: string; date?: string; time?: string; userId?: string; notes?: string };
   if (!body?.propertyId || !body?.date || !body?.time) {
     return reply.code(400).send({ error: "propertyId, date, and time required" });
   }
@@ -152,8 +237,9 @@ app.post("/api/v1/viewings/book", async (request, reply) => {
       },
     });
     return { status: "success", booking };
-  } catch (err: any) {
-    return reply.code(500).send({ error: err.message });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return reply.code(500).send({ error: message });
   }
 });
 
@@ -164,7 +250,7 @@ const host = process.env.HOST || "0.0.0.0";
 try {
   await app.listen({ port, host });
   console.log(`🚀 API Gateway running at http://${host}:${port}`);
-} catch (err) {
+} catch (err: unknown) {
   app.log.error(err);
   process.exit(1);
 }

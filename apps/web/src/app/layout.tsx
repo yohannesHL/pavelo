@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { I18nProvider } from "@/i18n";
 
 const inter = Inter({
@@ -26,6 +27,19 @@ export const metadata: Metadata = {
   title: "Pavelo — AI Estate Agent",
   description:
     "Your AI estate agent that listens, remembers, and delivers. Voice-first property search powered by Xara.",
+  manifest: "/manifest.json",
+  themeColor: "#1B3A6B",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+    viewportFit: "cover",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Pavelo",
+  },
 };
 
 export default function RootLayout({
@@ -41,13 +55,20 @@ export default function RootLayout({
       <body className="min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased">
         <AuthProvider>
           <I18nProvider>
+          {/* Skip to content — accessibility (S10-06) */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-[var(--color-primary)] focus:px-4 focus:py-2 focus:text-white focus:shadow-lg focus:outline-none"
+          >
+            Skip to main content
+          </a>
           <div className="flex min-h-screen flex-col">
-            <header className="border-b border-[var(--border)] px-6 py-4">
-              <nav className="mx-auto flex max-w-7xl items-center justify-between">
+            <header className="border-b border-[var(--border)] px-6 py-4" role="banner">
+              <nav className="mx-auto flex max-w-7xl items-center justify-between" aria-label="Main navigation" role="navigation">
                 <a href="/" className="text-xl font-bold text-[var(--color-primary)]">
                   Pavelo
                 </a>
-                <div className="flex items-center gap-4">
+                <div className="hidden items-center gap-4 md:flex">
                   <a
                     href="/property"
                     className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
@@ -99,7 +120,8 @@ export default function RootLayout({
                 </div>
               </nav>
             </header>
-            <main className="flex-1">{children}</main>
+            <main id="main-content" className="flex-1 pb-16 md:pb-0" role="main">{children}</main>
+            <MobileNav />
           </div>
         </I18nProvider>
         </AuthProvider>

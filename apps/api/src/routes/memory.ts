@@ -70,8 +70,8 @@ export const memoryRouter = router({
       }
 
       // Filter out the memory from the timeline
-      const memories = (profile.memories as any[]) || [];
-      const updated = memories.filter((m: any) => m.id !== input.memoryId);
+      const memories = (profile.memories as Record<string, unknown>[]) || [];
+      const updated = memories.filter((m) => (m as { id?: string }).id !== input.memoryId);
 
       await prisma.userProfile.update({
         where: { userId: ctx.userId },
@@ -103,11 +103,12 @@ export const memoryRouter = router({
       }
 
       return await response.json();
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof TRPCError) throw error;
+      const message = error instanceof Error ? error.message : "Unknown error";
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: `Failed to consolidate: ${error.message}`,
+        message: `Failed to consolidate: ${message}`,
       });
     }
   }),

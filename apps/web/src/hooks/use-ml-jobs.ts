@@ -83,7 +83,7 @@ export function useMLJobs(pollInterval = 5000) {
         total: data.total || 0,
       });
       setError(null);
-    } catch (e) {
+    } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to fetch jobs");
     } finally {
       setLoading(false);
