@@ -227,7 +227,7 @@ async function fetchRealIsochrones(
     throw new Error(`TravelTime API error: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as { results?: Record<string, unknown>[] };
   const isochrones: IsochronePolygon[] = [];
 
   for (const result of data.results || []) {

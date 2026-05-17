@@ -109,7 +109,7 @@ async function fetchCrimes(
     throw new Error(`Police UK API error: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as Record<string, unknown>[];
   return data.map((crime: any) => ({
     id: crime.id?.toString() || `${crime.category}-${crime.month}`,
     category: crime.category,

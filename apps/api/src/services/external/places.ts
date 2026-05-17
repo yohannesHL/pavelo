@@ -269,7 +269,7 @@ async function fetchRealAmenities(
     const response = await fetchWithRetry(url.toString());
     if (!response.ok) continue;
 
-    const data = await response.json();
+    const data = (await response.json()) as { results?: Record<string, unknown>[] };
     const amenities: Amenity[] = (data.results || []).map(
       (place: any, i: number) => {
         const placeLat = place.geometry?.location?.lat || lat;
