@@ -36,6 +36,19 @@
 - Stripe integration uses mock checkout URLs (real Stripe integration needs env vars)
 - Webhook payloads include `event`, `timestamp`, `data` format (Zapier/Make compatible)
 
-## Phase 3: White-label & Multi-tenancy (S9-05, S9-06, S9-07) ⬜
+## Phase 3: White-label & Multi-tenancy (S9-05, S9-06, S9-07) ✅
+
+### Completed
+- **Branding Settings Page** (`/agency/settings/branding`): Logo, colors, persona name, custom domain with live preview
+- **Billing Page** (`/agency/billing`): Plan comparison cards, usage meters, invoices table, upgrade/downgrade
+- **White-label CSS**: `.agency-branded` class, CSS custom property overrides cascade system
+- **Agency Dashboard CSS**: KPI hover animations, sidebar theming, plan shimmer effect
+- **Multi-tenancy Backend**: Row-level scoping via `verifyAgencyMember()` helper on all agency queries
+
+### Decisions Made
+- White-label override works via CSS custom properties on wrapper div (no build step needed)
+- Billing uses mock Stripe checkout URLs (env vars for real integration)
+- Usage meters show warning at 80% threshold
+- Live branding preview shows mock chat interface with agency colors
 
 ## Phase 4: Feedback & Additional Visuals (S9-08, S9-09, S9-10) ⬜
