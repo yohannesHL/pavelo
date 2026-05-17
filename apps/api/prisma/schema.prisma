@@ -23,7 +23,9 @@ model User {
   preferences Json? @default("{}")
 
   // Relations
-  properties Property[]
+  properties   Property[]
+  savedSearches SavedSearch[]
+  searchEvents  SearchEvent[]
 
   // Timestamps
   createdAt DateTime  @default(now()) @map("created_at")
@@ -92,6 +94,7 @@ model Property {
 model SavedSearch {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
   name      String   @default("Untitled Search")
   query     String
   filters   Json     @default("{}")
@@ -111,6 +114,7 @@ model SavedSearch {
 model SearchEvent {
   id           String   @id @default(uuid()) @db.Uuid
   userId       String?  @map("user_id") @db.Uuid
+  user         User?    @relation(fields: [userId], references: [id])
   query        String
   filters      Json     @default("{}")
   resultCount  Int      @default(0) @map("result_count")
