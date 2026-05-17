@@ -8,7 +8,7 @@
  * Responsive: mobile bottom sheet controls.
  */
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Phone } from "lucide-react";
 import { useVoiceSession } from "@/hooks/use-voice-session";
@@ -18,12 +18,16 @@ import {
   VoiceControls,
   XaraAvatar,
   ConnectionStatus,
+  LanguageSelector,
+  RecordingConsent,
 } from "@/components/voice";
 import { useAuthStore } from "@/stores/auth-store";
 
 export default function VoicePage() {
   const router = useRouter();
   const { user, initialize } = useAuthStore();
+  const [language, setLanguage] = useState("en");
+  const [recordingConsent, setRecordingConsent] = useState(false);
   const {
     connect,
     disconnect,
@@ -46,8 +50,8 @@ export default function VoicePage() {
   }, [initialize]);
 
   const handleStartCall = useCallback(() => {
-    connect({ language: "en", recordingConsent: false });
-  }, [connect]);
+    connect({ language, recordingConsent });
+  }, [connect, language, recordingConsent]);
 
   const handleEndCall = useCallback(async () => {
     await disconnect();
@@ -122,6 +126,22 @@ export default function VoicePage() {
               <Phone className="h-5 w-5" />
               {user ? "Start Call" : "Sign in to start"}
             </button>
+
+            {/* Language & consent options */}
+            {user && (
+              <div className="flex flex-col items-center gap-4 mt-2">
+                <LanguageSelector
+                  value={language}
+                  onChange={setLanguage}
+                  disabled={isActive}
+                />
+                <RecordingConsent
+                  checked={recordingConsent}
+                  onChange={setRecordingConsent}
+                  className="max-w-xs"
+                />
+              </div>
+            )}
 
             {!user && (
               <p className="text-white/30 text-xs">

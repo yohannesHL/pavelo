@@ -1,6 +1,6 @@
 # Sprint 6 — Voice Infrastructure — Progress
 
-## Status: 🚧 In Progress
+## Status: ✅ Complete
 
 ### Phase 1 — LiveKit Server & React SDK (S6-01, S6-02, S6-07)
 - [x] S6-01: LiveKit server setup (docker-compose, API wrapper, token service, tRPC endpoints)
@@ -16,9 +16,9 @@
 - [x] S6-06: Voice-to-chat transcript (save as messages, source tagging)
 
 ### Phase 4 — Multi-language, Persona & Monitoring (S6-08, S6-09, S6-10)
-- [ ] S6-08: Multi-language support (language detection, multilingual TTS)
-- [ ] S6-09: Voice persona (voice-specific prompt engineering)
-- [ ] S6-10: Voice quality monitoring (TTFB, WER, session metadata)
+- [x] S6-08: Multi-language support (language detection, multilingual TTS)
+- [x] S6-09: Voice persona (voice-specific prompt engineering)
+- [x] S6-10: Voice quality monitoring (TTFB, WER, session metadata)
 
 ---
 
