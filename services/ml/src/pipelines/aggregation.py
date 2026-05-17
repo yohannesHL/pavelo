@@ -128,6 +128,9 @@ FEATURE_TAG_RULES = {
     "loft-conversion": ["loft conversion", "loft room", "attic room"],
     "conservatory": ["conservatory", "sun room", "sunroom"],
     "extension": ["extension", "extended"],
+    "garden": ["garden", "rear garden", "front garden", "landscaped garden"],
+    "basement": ["basement", "cellar", "lower ground"],
+    "listed-building": ["listed building", "listed property", "grade i", "grade ii", "grade 2", "heritage listed"],
 }
 
 
@@ -135,16 +138,18 @@ def detect_feature_tags(
     interior_results: list[InteriorResult],
     period_features: list[str],
     notes: str | None = None,
+    scenes: list[SceneResult] | None = None,
 ) -> list[str]:
     """Detect feature tags from analysis results.
 
-    Scans interior attributes, period features, and notes for
-    keywords that map to standard feature tags.
+    Scans interior attributes, period features, notes, and scene
+    classifications for keywords that map to standard feature tags.
 
     Args:
         interior_results: List of interior analysis results.
         period_features: Detected period features.
         notes: Additional analysis notes.
+        scenes: Optional list of scene classification results.
 
     Returns:
         List of detected feature tag strings.
@@ -195,6 +200,12 @@ def detect_feature_tags(
                 tags.add("sash-windows")
             if "bay" in feat_lower:
                 tags.add("bay-windows")
+
+    # Scene-based tags (e.g. garden scene → garden tag)
+    if scenes:
+        for scene in scenes:
+            if scene.scene == "garden" and scene.confidence > 0.3:
+                tags.add("garden")
 
     return sorted(tags)
 
@@ -277,7 +288,7 @@ def aggregate_property_attributes(
     rooms = list({r.room_type for r in parsed_interiors if r.room_type})
 
     # Feature tags
-    feature_tags = detect_feature_tags(parsed_interiors, period_features)
+    feature_tags = detect_feature_tags(parsed_interiors, period_features, scenes=scenes)
 
     attrs = PropertyAttributes(
         property_id=property_id,
