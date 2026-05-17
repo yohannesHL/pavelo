@@ -183,14 +183,22 @@ Rules:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": query},
             ],
-            functions=[DECOMPOSE_FUNCTION],
-            function_call={"name": "decompose_property_query"},
+            tools=[
+                {
+                    "type": "function",
+                    "function": DECOMPOSE_FUNCTION,
+                }
+            ],
+            tool_choice={
+                "type": "function",
+                "function": {"name": "decompose_property_query"},
+            },
             temperature=0,
         )
 
-        fn_call = response.choices[0].message.function_call
-        if fn_call and fn_call.arguments:
-            params = json.loads(fn_call.arguments)
+        tool_calls = response.choices[0].message.tool_calls
+        if tool_calls and tool_calls[0].function.arguments:
+            params = json.loads(tool_calls[0].function.arguments)
         else:
             params = {"semantic_query": query}
 
