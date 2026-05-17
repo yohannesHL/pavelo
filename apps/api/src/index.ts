@@ -11,6 +11,7 @@ import { appRouter, type AppRouter } from "./router.js";
 import { createContext } from "./context.js";
 import { imageRoutes } from "./routes/upload.js";
 import { websocketPlugin } from "./routes/websocket.js";
+import { registerTraceMiddleware } from "./middleware/trace.js";
 
 config();
 
@@ -60,6 +61,9 @@ app.addHook("onRequest", async (request, reply) => {
     reply.header("X-RateLimit-Auth", "10/min");
   }
 });
+
+// --- Observability (S10-08) ---
+registerTraceMiddleware(app);
 
 // --- tRPC ---
 await app.register(fastifyTRPCPlugin, {

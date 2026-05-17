@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { I18nProvider } from "@/i18n";
 
 const inter = Inter({
@@ -26,6 +27,19 @@ export const metadata: Metadata = {
   title: "Pavelo — AI Estate Agent",
   description:
     "Your AI estate agent that listens, remembers, and delivers. Voice-first property search powered by Xara.",
+  manifest: "/manifest.json",
+  themeColor: "#1B3A6B",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+    viewportFit: "cover",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Pavelo",
+  },
 };
 
 export default function RootLayout({
@@ -54,7 +68,7 @@ export default function RootLayout({
                 <a href="/" className="text-xl font-bold text-[var(--color-primary)]">
                   Pavelo
                 </a>
-                <div className="flex items-center gap-4">
+                <div className="hidden items-center gap-4 md:flex">
                   <a
                     href="/property"
                     className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
@@ -106,7 +120,8 @@ export default function RootLayout({
                 </div>
               </nav>
             </header>
-            <main id="main-content" className="flex-1" role="main">{children}</main>
+            <main id="main-content" className="flex-1 pb-16 md:pb-0" role="main">{children}</main>
+            <MobileNav />
           </div>
         </I18nProvider>
         </AuthProvider>

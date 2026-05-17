@@ -345,6 +345,43 @@ textarea:focus-visible {
   color: var(--color-accent);
 }
 
+/* ─── Mobile Responsive (S10-07) ─── */
+@media (max-width: 767px) {
+  .agency-kpi-card {
+    padding: 12px;
+  }
+
+  /* Stack form grids */
+  .grid-cols-2,
+  .grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Full-width tables scroll */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Touch-friendly tap targets */
+  button,
+  a,
+  select,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 /* ─── Billing Plan Cards (S9-07) ─── */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
