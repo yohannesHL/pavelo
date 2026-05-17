@@ -31,40 +31,74 @@ export function SearchBar({
 }: SearchBarProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listboxId = "search-suggestions-listbox";
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") {
-        onSearch();
-        setShowSuggestions(false);
-      }
-      if (e.key === "Escape") {
-        setShowSuggestions(false);
-        inputRef.current?.blur();
-      }
-    },
-    [onSearch]
-  );
+  const displaySuggestions =
+    suggestions.length > 0 ? suggestions : query.length === 0 ? EXAMPLE_QUERIES : [];
 
   const handleSuggestionClick = useCallback(
     (suggestion: string) => {
       onQueryChange(suggestion);
       setShowSuggestions(false);
+      setActiveIndex(-1);
       // Auto-trigger search
       setTimeout(onSearch, 50);
     },
     [onQueryChange, onSearch]
   );
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        if (activeIndex >= 0 && displaySuggestions[activeIndex]) {
+          handleSuggestionClick(displaySuggestions[activeIndex]);
+        } else {
+          onSearch();
+        }
+        setShowSuggestions(false);
+        setActiveIndex(-1);
+      }
+      if (e.key === "Escape") {
+        setShowSuggestions(false);
+        setActiveIndex(-1);
+        inputRef.current?.blur();
+      }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setShowSuggestions(true);
+        setActiveIndex((prev) =>
+          prev < displaySuggestions.length - 1 ? prev + 1 : 0
+        );
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveIndex((prev) =>
+          prev > 0 ? prev - 1 : displaySuggestions.length - 1
+        );
+      }
+    },
+    [onSearch, activeIndex, displaySuggestions, handleSuggestionClick]
+  );
+
   useEffect(() => {
-    const handleClickOutside = () => setShowSuggestions(false);
+    const handleClickOutside = () => {
+      setShowSuggestions(false);
+      setActiveIndex(-1);
+    };
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const displaySuggestions =
-    suggestions.length > 0 ? suggestions : query.length === 0 ? EXAMPLE_QUERIES : [];
+  // Reset active index when suggestions change
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [query]);
+
+  const isListboxOpen = showSuggestions && displaySuggestions.length > 0;
+  const activeDescendant =
+    activeIndex >= 0 ? `search-suggestion-${activeIndex}` : undefined;
 
   return (
     <div className="relative" onClick={(e) => e.stopPropagation()}>
@@ -94,7 +128,11 @@ export function SearchBar({
           className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--muted-foreground)]"
           aria-label="Property search"
           role="combobox"
-          aria-expanded={showSuggestions}
+          aria-expanded={isListboxOpen}
+          aria-controls={listboxId}
+          aria-activedescendant={activeDescendant}
+          aria-autocomplete="list"
+          aria-haspopup="listbox"
         />
         {query && (
           <button
@@ -118,15 +156,27 @@ export function SearchBar({
       </div>
 
       {/* Suggestions dropdown */}
-      {showSuggestions && displaySuggestions.length > 0 && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-[var(--radius-card)] border border-[var(--border)] bg-white shadow-lg">
+      {isListboxOpen && (
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label="Search suggestions"
+          className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-[var(--radius-card)] border border-[var(--border)] bg-white shadow-lg"
+        >
           <div className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-[var(--muted-foreground)]">
             {query.length === 0 ? "Try searching for…" : "Suggestions"}
           </div>
           {displaySuggestions.map((suggestion, i) => (
             <button
               key={i}
-              className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-left hover:bg-[var(--muted)] transition-colors"
+              id={`search-suggestion-${i}`}
+              role="option"
+              aria-selected={activeIndex === i}
+              className={`flex w-full items-center gap-2 px-3 py-2.5 text-sm text-left transition-colors ${
+                activeIndex === i
+                  ? "bg-[var(--muted)]"
+                  : "hover:bg-[var(--muted)]"
+              }`}
               onMouseDown={(e) => {
                 e.preventDefault();
                 handleSuggestionClick(suggestion);
