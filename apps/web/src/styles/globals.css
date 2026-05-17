@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+@theme {
+  /* Colors */
+  --color-primary: var(--color-primary);
+  --color-accent: var(--color-accent);
+  --color-gold: var(--color-gold);
+  --color-primary-foreground: #ffffff;
+  --color-accent-foreground: #ffffff;
+
+  /* Radius */
+  --radius-card: var(--radius-card);
+  --radius-input: var(--radius-input);
+  --radius-badge: var(--radius-badge);
+}
+
+body {
+  font-family: var(--font-ui), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), serif;
+}
+
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #0a0a0a;
+    --muted: #f5f5f5;
+    --muted-foreground: #737373;
+    --border: #e5e5e5;
+    --ring: var(--color-accent);
+  }
+
+  .dark {
+    --background: #0a0a0a;
+    --foreground: #fafafa;
+    --muted: #262626;
+    --muted-foreground: #a3a3a3;
+    --border: #262626;
+  }
+}
