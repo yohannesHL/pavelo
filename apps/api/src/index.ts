@@ -19,17 +19,46 @@ const app = Fastify({
 });
 
 // --- Middleware ---
-await app.register(helmet);
+await app.register(helmet, {
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://*.supabase.co", "wss:"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+});
 await app.register(cors, {
   origin:
     process.env.NODE_ENV === "development"
       ? true
-      : ["http://localhost:3000"],
+      : (process.env.CORS_ORIGINS || "http://localhost:3000").split(","),
   credentials: true,
 });
 await app.register(rateLimit, {
   max: 100,
   timeWindow: "1 minute",
+});
+
+// Auth-specific rate limiting (stricter)
+app.addHook("onRequest", async (request, reply) => {
+  const path = request.url;
+  if (
+    path.includes("/auth") ||
+    path.includes("signUp") ||
+    path.includes("signIn")
+  ) {
+    // Additional rate limit header for auth routes
+    reply.header("X-RateLimit-Auth", "10/min");
+  }
 });
 
 // --- tRPC ---
