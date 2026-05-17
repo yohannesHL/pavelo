@@ -395,8 +395,8 @@ pavelo/
 | **2** | Auth, Property Schema & Core APIs | 3–4 | ✅ **Complete** |
 | **3** | Image Intelligence ML Pipeline | 5–6 | ✅ **Complete** |
 | **4** | Hybrid RAG Search Engine | 7–8 | ✅ **Complete** |
-| 5 | Chat Interface & Text Agent | 9–10 | 🔜 **Next** |
-| 6 | Voice Infrastructure | 11–12 | ⬜ Planned |
+| **5** | Chat Interface & Text Agent | 9–10 | ✅ **Complete** |
+| 6 | Voice Infrastructure | 11–12 | 🔜 **Next** |
 | 7 | Visual Intelligence Components | 13–14 | ⬜ Planned |
 | 8 | Memory, Valuation & Seller Flow | 15–16 | ⬜ Planned |
 | 9 | Agent Dashboard, B2B & Integrations | 17–18 | ⬜ Planned |
@@ -456,6 +456,18 @@ pavelo/
 - [x] Search analytics: query logging, click-through tracking, zero-results analysis
 - [x] Search quality eval: 25 benchmark queries, MRR/NDCG/Precision/Recall metrics
 
+### Sprint 5 — Chat Interface & Text Agent ✅
+- [x] Chat UI: message stream, markdown render, typing indicator, input toolbar, keyboard shortcuts
+- [x] WebSocket infrastructure: Fastify ws plugin, JWT auth on upgrade, room-based routing, heartbeat
+- [x] Conversation persistence: Prisma Conversation/Message models, tRPC CRUD, pagination, search
+- [x] LangGraph agent full integration: OpenAI intent classifier, Mem0 memory, streaming responses
+- [x] Agent tools: get_property_details, compare_properties, get_mortgage_estimate
+- [x] Streaming response relay: Python SSE → Node WebSocket → Next.js chat UI
+- [x] Visual payload protocol: JSON schema, render router, inline rendering in chat
+- [x] Property card visual: inline property card, carousel, comparison table
+- [x] Conversation list/history: sidebar, search, delete, resume, new chat
+- [x] Agent persona system: configurable name/tone/formality, system prompt template
+
 ---
 
 ## 8. Current State
@@ -488,9 +500,17 @@ pavelo/
 | Saved searches | ✅ Complete | CRUD, alert toggle, recheck ready |
 | Search analytics | ✅ Complete | Query log, CTR, zero-results analysis |
 | Search eval | ✅ Complete | 25 benchmarks, MRR/NDCG metrics, CLI + API |
+| Chat UI | ✅ Complete | Message stream, markdown, typing indicator, property cards |
+| WebSocket infra | ✅ Complete | JWT auth, rooms, heartbeat, agent relay |
+| Conversation DB | ✅ Complete | Prisma models, tRPC CRUD, pagination |
+| LangGraph agent | ✅ Integrated | OpenAI intent + response, Mem0 memory, tools |
+| Agent tools | ✅ Complete | property_details, compare, mortgage_estimate |
+| Streaming relay | ✅ Complete | Python SSE → Node WS → React UI |
+| Visual payloads | ✅ Complete | property_card, carousel, comparison_table, mortgage |
+| Agent persona | ✅ Complete | Configurable name/tone/formality, Xara default |
 | LiveKit voice | ❌ Not started | Sprint 6 |
 
-> **Last updated:** Sprint 4 complete — full hybrid RAG search engine with RRF fusion, NL query decomposition, revamped search UI with map, saved searches, image similarity, analytics, and quality eval.
+> **Last updated:** Sprint 5 complete — full chat interface with WebSocket infrastructure, LangGraph agent with OpenAI integration, Mem0 memory, property search tools, streaming responses, visual payloads, and configurable persona system.
 
 ---
 

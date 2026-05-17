@@ -1,6 +1,6 @@
 # Sprint 5 — Chat Interface & Text Agent — Progress
 
-## Status: 🔄 In Progress
+## Status: ✅ Complete
 
 ### Phase 1 — WebSocket Infrastructure & Chat UI (S5-01, S5-02, S5-03)
 - [x] S5-01: Chat UI component
@@ -21,7 +21,7 @@
 - [x] S5-09: Conversation list / history view (completed in Phase 1)
 
 ### Phase 4 — Agent Persona (S5-10)
-- [ ] S5-10: Agent persona system
+- [x] S5-10: Agent persona system (completed in Phase 2)
 
 ---
 
