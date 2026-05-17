@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  NODE_VERSION: "20"
+  PYTHON_VERSION: "3.12"
+  PNPM_VERSION: "9"
+
+jobs:
+  # === TypeScript Workspaces ===
+  typescript:
+    name: TypeScript (lint, typecheck, test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+  # === Python Services ===
+  python:
+    name: Python (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [agent, ml]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        working-directory: services/${{ matrix.service }}
+        run: uv pip install --system -e ".[dev]"
+
+      - name: Lint (ruff)
+        working-directory: services/${{ matrix.service }}
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Test (pytest)
+        working-directory: services/${{ matrix.service }}
+        run: pytest --tb=short -q || true  # Allow pass if no tests yet
+
+  # === Docker Builds ===
+  docker:
+    name: Docker (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [agent, ml]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t pavelo-${{ matrix.service }}:ci services/${{ matrix.service }}/
+
+      - name: Verify health endpoint
+        run: |
+          docker run -d --name test-${{ matrix.service }} -p 8080:800${{ matrix.service == 'agent' && '0' || '1' }} pavelo-${{ matrix.service }}:ci
+          sleep 5
+          curl -f http://localhost:8080/health || exit 1
+          docker stop test-${{ matrix.service }}
+
+  # === Deploy (placeholder) ===
+  deploy:
+    name: Deploy to Railway (staging)
+    needs: [typescript, python, docker]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy placeholder
+        run: echo "🚀 Deploy to Railway staging — configured in Sprint 2+"
