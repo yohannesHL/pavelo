@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { SearchBar } from "@/components/search/search-bar";
 import {
   FilterSidebar,
@@ -10,118 +10,7 @@ import { SearchResultsGrid } from "@/components/search/search-results-grid";
 import { ViewControls } from "@/components/search/view-controls";
 import { PropertyMap } from "@/components/maps/property-map";
 import { Badge } from "@/components/ui/badge";
-
-// Mock data — connected to tRPC search.query in production
-const MOCK_PROPERTIES = [
-  {
-    id: "1",
-    title: "Victorian Terrace in Islington",
-    price: 895000,
-    propertyType: "terraced",
-    status: "for_sale",
-    bedrooms: 3,
-    bathrooms: 2,
-    squareFeet: 1200,
-    addressLine1: "42 Arlington Road",
-    city: "London",
-    postcode: "N1 7BA",
-    latitude: 51.5362,
-    longitude: -0.1033,
-    images: [],
-    features: ["Garden", "Period Features", "Open Plan Kitchen"],
-    searchScore: 0.94,
-  },
-  {
-    id: "2",
-    title: "Modern Penthouse with City Views",
-    price: 1250000,
-    propertyType: "flat",
-    status: "for_sale",
-    bedrooms: 2,
-    bathrooms: 2,
-    squareFeet: 950,
-    addressLine1: "Tower Bridge House",
-    city: "London",
-    postcode: "SE1 2UP",
-    latitude: 51.5055,
-    longitude: -0.0754,
-    images: [],
-    features: ["Balcony", "Concierge", "Gym"],
-    searchScore: 0.87,
-  },
-  {
-    id: "3",
-    title: "Detached Family Home with Garden",
-    price: 650000,
-    propertyType: "detached",
-    status: "for_sale",
-    bedrooms: 4,
-    bathrooms: 3,
-    squareFeet: 2100,
-    addressLine1: "15 Oak Lane",
-    city: "Oxford",
-    postcode: "OX2 6HT",
-    latitude: 51.7548,
-    longitude: -1.2544,
-    images: [],
-    features: ["Double Garage", "South-Facing Garden", "En-suite"],
-    searchScore: 0.82,
-  },
-  {
-    id: "4",
-    title: "Charming Cottage in the Cotswolds",
-    price: 475000,
-    propertyType: "cottage",
-    status: "for_sale",
-    bedrooms: 2,
-    bathrooms: 1,
-    squareFeet: 800,
-    addressLine1: "Rose Cottage",
-    city: "Burford",
-    postcode: "OX18 4SN",
-    latitude: 51.8095,
-    longitude: -1.6385,
-    images: [],
-    features: ["Period Features", "Garden", "Fireplace"],
-    searchScore: 0.78,
-  },
-  {
-    id: "5",
-    title: "Edwardian Semi in Leafy Suburb",
-    price: 725000,
-    propertyType: "semi_detached",
-    status: "under_offer",
-    bedrooms: 3,
-    bathrooms: 2,
-    squareFeet: 1400,
-    addressLine1: "28 Elm Avenue",
-    city: "Bristol",
-    postcode: "BS6 6AT",
-    latitude: 51.4688,
-    longitude: -2.6005,
-    images: [],
-    features: ["Bay Windows", "Garden", "Cellar"],
-    searchScore: 0.73,
-  },
-  {
-    id: "6",
-    title: "Luxury Mansion with Grounds",
-    price: 2500000,
-    propertyType: "mansion",
-    status: "for_sale",
-    bedrooms: 6,
-    bathrooms: 5,
-    squareFeet: 5500,
-    addressLine1: "Westwood Manor",
-    city: "Bath",
-    postcode: "BA1 3NR",
-    latitude: 51.3811,
-    longitude: -2.3590,
-    images: [],
-    features: ["Swimming Pool", "Tennis Court", "Stables"],
-    searchScore: 0.65,
-  },
-];
+import { usePropertySearch } from "@/hooks/use-property-search";
 
 const DEFAULT_FILTERS: SearchFilterState = {
   minPrice: 0,
@@ -140,8 +29,54 @@ export default function PropertySearchPage() {
   const [view, setView] = useState<"grid" | "list" | "map">("grid");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [activePropertyId, setActivePropertyId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [properties, setProperties] = useState(MOCK_PROPERTIES);
+
+  const {
+    results: properties,
+    total: totalCount,
+    hasMore,
+    isLoading,
+    error,
+    search,
+    loadMore,
+    reset,
+  } = usePropertySearch();
+
+  // Track whether user has ever searched (to avoid auto-search on mount with empty query)
+  const hasSearched = useRef(false);
+
+  // Build search params from current UI state
+  const buildSearchParams = useCallback(() => {
+    return {
+      query: query || "property", // tRPC requires min 1 char
+      filters: {
+        minPrice: filters.minPrice > 0 ? filters.minPrice : undefined,
+        maxPrice: filters.maxPrice < 5_000_000 ? filters.maxPrice : undefined,
+        minBedrooms: filters.minBedrooms > 0 ? filters.minBedrooms : undefined,
+        propertyType: filters.propertyTypes.length === 1 ? filters.propertyTypes[0] : undefined,
+        city: filters.location || undefined,
+        status: filters.status || undefined,
+      },
+      sortBy: filters.sortBy as "relevance" | "price_asc" | "price_desc" | "newest" | "bedrooms",
+    };
+  }, [query, filters]);
+
+  // Handle search
+  const handleSearch = useCallback(() => {
+    hasSearched.current = true;
+    search(buildSearchParams());
+  }, [search, buildSearchParams]);
+
+  // Handle load more
+  const handleLoadMore = useCallback(() => {
+    loadMore(buildSearchParams());
+  }, [loadMore, buildSearchParams]);
+
+  // Auto-search on filter change (only after initial search)
+  useEffect(() => {
+    if (hasSearched.current) {
+      search(buildSearchParams());
+    }
+  }, [filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Count active filters
   const activeFilterCount = [
@@ -151,54 +86,6 @@ export default function PropertySearchPage() {
     filters.propertyTypes.length > 0,
     filters.location.length > 0,
   ].filter(Boolean).length;
-
-  // Handle search
-  const handleSearch = useCallback(() => {
-    setIsLoading(true);
-    // In production: call tRPC search.query
-    // For now, filter mock data client-side
-    let items = [...MOCK_PROPERTIES];
-
-    if (query) {
-      const q = query.toLowerCase();
-      items = items.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.city.toLowerCase().includes(q) ||
-          p.postcode.toLowerCase().includes(q) ||
-          p.features.some((f) => f.toLowerCase().includes(q))
-      );
-    }
-
-    if (filters.minPrice > 0) items = items.filter((p) => p.price >= filters.minPrice);
-    if (filters.maxPrice < 5_000_000) items = items.filter((p) => p.price <= filters.maxPrice);
-    if (filters.minBedrooms > 0) items = items.filter((p) => p.bedrooms >= filters.minBedrooms);
-    if (filters.propertyTypes.length > 0)
-      items = items.filter((p) => filters.propertyTypes.includes(p.propertyType));
-    if (filters.location) {
-      const loc = filters.location.toLowerCase();
-      items = items.filter(
-        (p) => p.city.toLowerCase().includes(loc) || p.postcode.toLowerCase().includes(loc)
-      );
-    }
-
-    // Sort
-    if (filters.sortBy === "price_asc") items.sort((a, b) => a.price - b.price);
-    else if (filters.sortBy === "price_desc") items.sort((a, b) => b.price - a.price);
-    else if (filters.sortBy === "bedrooms") items.sort((a, b) => b.bedrooms - a.bedrooms);
-    else if (filters.sortBy === "newest") { /* keep default order */ }
-    // relevance = keep searchScore order (already sorted)
-
-    setTimeout(() => {
-      setProperties(items);
-      setIsLoading(false);
-    }, 300);
-  }, [query, filters]);
-
-  // Auto-search on filter change
-  useEffect(() => {
-    handleSearch();
-  }, [filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateFilters = (partial: Partial<SearchFilterState>) => {
     setFilters((prev) => ({ ...prev, ...partial }));
@@ -227,6 +114,12 @@ export default function PropertySearchPage() {
               isLoading={isLoading}
             />
           </div>
+          {/* Error banner */}
+          {error && (
+            <div className="mx-auto mt-3 max-w-2xl rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+              Search unavailable: {error}. Please try again.
+            </div>
+          )}
           {/* Active filter tags */}
           {activeFilterCount > 0 && (
             <div className="mx-auto mt-4 flex max-w-2xl flex-wrap items-center gap-2">
@@ -296,7 +189,7 @@ export default function PropertySearchPage() {
               onViewChange={setView}
               onToggleFilters={() => setShowMobileFilters(true)}
               activeFilterCount={activeFilterCount}
-              totalResults={properties.length}
+              totalResults={totalCount}
             />
 
             {view === "map" ? (
@@ -310,10 +203,10 @@ export default function PropertySearchPage() {
                 />
                 <SearchResultsGrid
                   properties={properties}
-                  totalCount={properties.length}
+                  totalCount={totalCount}
                   isLoading={isLoading}
-                  hasMore={false}
-                  onLoadMore={() => {}}
+                  hasMore={hasMore}
+                  onLoadMore={handleLoadMore}
                   activePropertyId={activePropertyId}
                   onPropertyHover={setActivePropertyId}
                   onPropertyClick={setActivePropertyId}
@@ -324,10 +217,10 @@ export default function PropertySearchPage() {
             ) : (
               <SearchResultsGrid
                 properties={properties}
-                totalCount={properties.length}
+                totalCount={totalCount}
                 isLoading={isLoading}
-                hasMore={false}
-                onLoadMore={() => {}}
+                hasMore={hasMore}
+                onLoadMore={handleLoadMore}
                 activePropertyId={activePropertyId}
                 onPropertyHover={setActivePropertyId}
                 onPropertyClick={setActivePropertyId}
