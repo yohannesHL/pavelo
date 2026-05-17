@@ -32,6 +32,7 @@ interface SoldPrice {
   propertyType: string;
   latitude?: number;
   longitude?: number;
+  sqft?: number;
 }
 
 interface PriceHeatmapProps {
@@ -71,6 +72,27 @@ function formatPrice(price: number): string {
   return `£${price}`;
 }
 
+function formatPricePerSqft(price: number): string {
+  return `£${Math.round(price)}/sqft`;
+}
+
+/** Estimate sqft from property type and price when not provided */
+function estimateSqft(sale: SoldPrice): number {
+  if (sale.sqft && sale.sqft > 0) return sale.sqft;
+  // Rough UK averages by property type
+  const defaults: Record<string, number> = {
+    detached: 1500,
+    "semi-detached": 900,
+    terraced: 750,
+    flat: 550,
+  };
+  const type = sale.propertyType?.toLowerCase() || "";
+  for (const [key, val] of Object.entries(defaults)) {
+    if (type.includes(key)) return val;
+  }
+  return 800; // fallback average
+}
+
 // ---------- Component ----------
 
 export function PriceHeatmap({
@@ -102,6 +124,25 @@ export function PriceHeatmap({
       };
     });
   }, [sales, center]);
+
+  // Compute display values based on selected metric
+  const { displayValues, displayRange } = useMemo(() => {
+    const values = new Map<string, number>();
+    if (metric === "sqft") {
+      for (const sale of salesWithLocations) {
+        const sqft = estimateSqft(sale);
+        values.set(sale.id, sale.price / sqft);
+      }
+    } else {
+      for (const sale of salesWithLocations) {
+        values.set(sale.id, sale.price);
+      }
+    }
+    const allVals = Array.from(values.values());
+    const min = allVals.length > 0 ? Math.min(...allVals) : 0;
+    const max = allVals.length > 0 ? Math.max(...allVals) : 1;
+    return { displayValues: values, displayRange: { min, max } };
+  }, [salesWithLocations, metric]);
 
   const locations = salesWithLocations.map((s) => ({
     lat: s.latitude!,
@@ -168,7 +209,8 @@ export function PriceHeatmap({
         {/* Heatmap dots */}
         {salesWithLocations.map((sale, i) => {
           const pos = geoToRelative(sale.latitude!, sale.longitude!, bounds);
-          const color = getPriceColor(sale.price, priceRange.min, priceRange.max);
+          const displayValue = displayValues.get(sale.id) ?? sale.price;
+          const color = getPriceColor(displayValue, displayRange.min, displayRange.max);
           const isHovered = hoveredSale === sale.id;
 
           return (
@@ -184,7 +226,7 @@ export function PriceHeatmap({
               }}
               onMouseEnter={() => setHoveredSale(sale.id)}
               onMouseLeave={() => setHoveredSale(null)}
-              aria-label={`${sale.address}: ${formatPrice(sale.price)}`}
+              aria-label={`${sale.address}: ${metric === "sqft" ? formatPricePerSqft(displayValue) : formatPrice(displayValue)}`}
             >
               {/* Glow circle */}
               <div
@@ -208,7 +250,7 @@ export function PriceHeatmap({
               {isHovered && (
                 <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[10px] text-white shadow-lg z-30">
                   <p className="font-[var(--font-data)] font-bold">
-                    {formatPrice(sale.price)}
+                    {metric === "sqft" ? formatPricePerSqft(displayValue) : formatPrice(displayValue)}
                   </p>
                   <p className="text-white/70 text-[9px]">{sale.address}</p>
                   <p className="text-white/50 text-[9px]">{sale.date}</p>
