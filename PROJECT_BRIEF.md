@@ -394,8 +394,8 @@ pavelo/
 | **1** | Infrastructure Foundations | 1–2 | ✅ **Complete** |
 | **2** | Auth, Property Schema & Core APIs | 3–4 | ✅ **Complete** |
 | **3** | Image Intelligence ML Pipeline | 5–6 | ✅ **Complete** |
-| 4 | Hybrid RAG Search Engine | 7–8 | 🔜 **Next** |
-| 5 | Chat Interface & Text Agent | 9–10 | ⬜ Planned |
+| **4** | Hybrid RAG Search Engine | 7–8 | ✅ **Complete** |
+| 5 | Chat Interface & Text Agent | 9–10 | 🔜 **Next** |
 | 6 | Voice Infrastructure | 11–12 | ⬜ Planned |
 | 7 | Visual Intelligence Components | 13–14 | ⬜ Planned |
 | 8 | Memory, Valuation & Seller Flow | 15–16 | ⬜ Planned |
@@ -444,6 +444,18 @@ pavelo/
 - [x] Celery + Redis async job queue with retry policies
 - [x] Bulk import tool (JSON + CSV property ingestion)
 
+### Sprint 4 — Hybrid RAG Search Engine ✅
+- [x] Qdrant hybrid search: dense + sparse fusion with RRF scoring, filter post-processing
+- [x] Natural language query decomposition: LLM-powered param extraction (OpenAI function calling)
+- [x] search_properties LangGraph tool: structured input, Qdrant call, result ranking, dedup
+- [x] Search API: tRPC search.query endpoint with ML service call + PostgreSQL hydration
+- [x] Revamped search UI: NL search bar, filter sidebar (price slider, bedrooms, type, location), grid/list views
+- [x] Map view: property pins with price labels, card popups, dark/light toggle, split view
+- [x] Saved searches + alerts: CRUD endpoints, SavedSearch Prisma model
+- [x] Image similarity search: CLIP embedding query, POST /api/v1/search/similar-image
+- [x] Search analytics: query logging, click-through tracking, zero-results analysis
+- [x] Search quality eval: 25 benchmark queries, MRR/NDCG/Precision/Recall metrics
+
 ---
 
 ## 8. Current State
@@ -452,28 +464,33 @@ pavelo/
 |---|---|---|
 | Monorepo scaffold | ✅ Complete | Turborepo + pnpm workspaces |
 | Next.js 15 app | ✅ Complete | App Router, Tailwind 4, shadcn/ui |
-| Fastify API | ✅ Complete | tRPC + REST, property CRUD |
-| LangGraph agent | ✅ Skeleton | StateGraph, 5 nodes, Mem0 client |
-| ML service | ✅ Complete | CLIP, GPT-4V, classifiers, job queue |
+| Fastify API | ✅ Complete | tRPC + REST, property CRUD, search |
+| LangGraph agent | ✅ Integrated | StateGraph, 5 nodes, search tool, Mem0 |
+| ML service | ✅ Complete | CLIP, GPT-4V, classifiers, hybrid search |
 | Supabase Auth | ✅ Complete | Login, signup, middleware, Zustand store |
-| Prisma schema | ✅ Expanded | User, Property with full attributes |
+| Prisma schema | ✅ Expanded | User, Property, SavedSearch, SearchEvent |
 | Docker Compose | ✅ Complete | PostgreSQL, Redis, Qdrant, LiveKit |
 | CI/CD | ✅ Complete | GitHub Actions |
 | Design system | ✅ Complete | Tailwind + shadcn + design tokens |
-| Property pages | ✅ Complete | Listing, detail, search, filters |
+| Property pages | ✅ Revamped | Search bar, filter sidebar, grid/list/map views |
 | Onboarding | ✅ Complete | Role selection, profile, preferences |
 | Image upload | ✅ Complete | Multipart, validation, URL storage |
 | Embedding pipeline | ✅ Complete | OpenAI + Qdrant + image enrichment |
-| Qdrant | ✅ Configured | Hybrid dense + sparse, image attribute payload |
+| Qdrant | ✅ Hybrid search | Dense + sparse + RRF fusion + filters |
 | Image classifiers | ✅ Complete | Scene (5-class), style (10-class), era (6-class) |
 | Vision LLM | ✅ Complete | GPT-4V interior analysis, condition scoring |
 | Feature aggregation | ✅ Complete | PropertyAttributes model, 20+ feature tags |
 | Admin dashboard | ✅ Complete | ML pipeline at /admin/ml |
 | Bulk import | ✅ Complete | JSON + CSV property ingestion |
 | Async job queue | ✅ Complete | Celery + Redis, retry policies |
+| Hybrid search | ✅ Complete | Dense + sparse RRF, NL decomposition, image search |
+| Search UI | ✅ Complete | NL bar, filter sidebar, grid/list/map, map pins |
+| Saved searches | ✅ Complete | CRUD, alert toggle, recheck ready |
+| Search analytics | ✅ Complete | Query log, CTR, zero-results analysis |
+| Search eval | ✅ Complete | 25 benchmarks, MRR/NDCG metrics, CLI + API |
 | LiveKit voice | ❌ Not started | Sprint 6 |
 
-> **Last updated:** Sprint 3 complete — full image intelligence ML pipeline delivered (CLIP, GPT-4V, classifiers, aggregation, re-embedding, admin UI, bulk import).
+> **Last updated:** Sprint 4 complete — full hybrid RAG search engine with RRF fusion, NL query decomposition, revamped search UI with map, saved searches, image similarity, analytics, and quality eval.
 
 ---
 
