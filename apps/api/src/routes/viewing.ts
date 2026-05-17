@@ -169,7 +169,7 @@ export const viewingRouter = router({
       });
     }),
 
-  /** Confirm a booking (agent/admin) */
+  /** Confirm a booking (only booking owner can confirm) */
   confirm: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ input, ctx }) => {
@@ -179,6 +179,14 @@ export const viewingRouter = router({
 
       if (!booking) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      }
+
+      // Ownership check: only the booking owner can confirm
+      if (booking.userId !== ctx.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only confirm your own bookings",
+        });
       }
 
       await prisma.viewingBooking.update({
