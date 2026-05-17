@@ -106,7 +106,7 @@ export function ChatPropertyCard({ property, title }: ChatPropertyCardProps) {
             <Bath className="h-3 w-3" />
             {property.bathrooms}
           </span>
-          {property.squareFeet && (
+          {property.squareFeet != null && property.squareFeet > 0 && (
             <span className="flex items-center gap-1">
               <Maximize2 className="h-3 w-3" />
               {property.squareFeet.toLocaleString()} ft²
