@@ -53,6 +53,12 @@ export default function RootLayout({
                     Properties
                   </a>
                   <a
+                    href="/chat"
+                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                  >
+                    Chat
+                  </a>
+                  <a
                     href="/dashboard"
                     className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                   >

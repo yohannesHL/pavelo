@@ -2,21 +2,8 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { Context } from "./context.js";
 import { prisma } from "./lib/prisma.js";
-
-const t = initTRPC.context<Context>().create();
-
-export const router = t.router;
-export const publicProcedure = t.procedure;
-
-/** Middleware that requires authentication */
-const isAuthed = t.middleware(({ ctx, next }) => {
-  if (!ctx.userId) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
-  }
-  return next({ ctx: { ...ctx, userId: ctx.userId as string } });
-});
-
-export const protectedProcedure = t.procedure.use(isAuthed);
+import { router, publicProcedure, protectedProcedure } from "./router-helpers.js";
+import { conversationRouter } from "./routes/conversation.js";
 
 // --- Zod Schemas ---
 
@@ -498,6 +485,9 @@ export const appRouter = router({
         });
       }),
   }),
+
+  /** Conversations — create, list, manage chat sessions (S5-03) */
+  conversation: conversationRouter,
 
   /** Search analytics (S4-09) */
   searchAnalytics: router({

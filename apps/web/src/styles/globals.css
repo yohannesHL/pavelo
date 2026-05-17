@@ -103,3 +103,81 @@ h1, h2, h3, h4, h5, h6 {
 .animate-in.slide-in-from-bottom {
   animation: slide-in-from-bottom 300ms ease-out;
 }
+
+/* Chat markdown styling */
+.chat-markdown p {
+  margin: 0;
+}
+.chat-markdown p + p {
+  margin-top: 0.5em;
+}
+.chat-markdown ul, .chat-markdown ol {
+  margin: 0.25em 0;
+  padding-left: 1.25em;
+}
+.chat-markdown li {
+  margin: 0.125em 0;
+}
+.chat-markdown code {
+  background: var(--muted);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  font-size: 0.85em;
+  font-family: var(--font-data);
+}
+.chat-markdown pre {
+  background: var(--muted);
+  padding: 0.75em;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.85em;
+}
+.chat-markdown pre code {
+  background: none;
+  padding: 0;
+}
+.chat-markdown strong {
+  font-weight: 600;
+}
+.chat-markdown a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+.chat-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5em 0;
+  font-size: 0.85em;
+}
+.chat-markdown th, .chat-markdown td {
+  border: 1px solid var(--border);
+  padding: 0.35em 0.5em;
+  text-align: left;
+}
+.chat-markdown th {
+  background: var(--muted);
+  font-weight: 600;
+}
+
+/* Blinking cursor for streaming */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.animate-blink {
+  animation: blink 0.8s infinite;
+}
+
+/* Subtle pulse for streaming bubble */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.92; }
+}
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Hide scrollbar for carousel */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
