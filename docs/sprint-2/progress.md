@@ -27,6 +27,6 @@
 - [x] Node stubs
 - [x] Mem0 integration prep
 
-## Phase 5: Embedding Pipeline Prep (S2-08, S2-09)
-- [ ] Property embedding pipeline
-- [ ] BM25 sparse index setup
+## Phase 5: Embedding Pipeline Prep (S2-08, S2-09) ✅
+- [x] Property embedding pipeline
+- [x] BM25 sparse index setup

@@ -391,9 +391,9 @@ pavelo/
 
 | Sprint | Title | Weeks | Status |
 |--------|-------|-------|--------|
-| **1** | Infrastructure Foundations | 1–2 | 🔜 **Next** |
-| 2 | Auth, Property Schema & Core APIs | 3–4 | ⬜ Planned |
-| 3 | Image Intelligence ML Pipeline | 5–6 | ⬜ Planned |
+| **1** | Infrastructure Foundations | 1–2 | ✅ **Complete** |
+| **2** | Auth, Property Schema & Core APIs | 3–4 | ✅ **Complete** |
+| 3 | Image Intelligence ML Pipeline | 5–6 | 🔜 **Next** |
 | 4 | Hybrid RAG Search Engine | 7–8 | ⬜ Planned |
 | 5 | Chat Interface & Text Agent | 9–10 | ⬜ Planned |
 | 6 | Voice Infrastructure | 11–12 | ⬜ Planned |
@@ -402,20 +402,35 @@ pavelo/
 | 9 | Agent Dashboard, B2B & Integrations | 17–18 | ⬜ Planned |
 | 10 | Hardening, Performance & Launch Prep | 19–20 | ⬜ Planned |
 
-### Sprint 1 — Infrastructure Foundations (Scope)
-- [ ] Turborepo + pnpm workspace scaffold
-- [ ] Next.js 15 app scaffold (`apps/web`)
-- [ ] Fastify API gateway scaffold (`apps/api`)
-- [ ] Python LangGraph agent scaffold (`services/agent`)
-- [ ] Python FastAPI ML service scaffold (`services/ml`)
-- [ ] Shared types package (`packages/shared`)
-- [ ] Supabase project + auth setup
-- [ ] Prisma schema (initial models: User, Property)
-- [ ] Docker Compose for local dev
-- [ ] GitHub Actions CI pipeline (lint, type-check, test)
-- [ ] Design system foundation (Tailwind config, tokens, shadcn/ui)
-- [ ] Environment variable template (`.env.example`)
-- [ ] README with setup instructions
+### Sprint 1 — Infrastructure Foundations ✅
+- [x] Turborepo + pnpm workspace scaffold
+- [x] Next.js 15 app scaffold (`apps/web`)
+- [x] Fastify API gateway scaffold (`apps/api`)
+- [x] Python LangGraph agent scaffold (`services/agent`)
+- [x] Python FastAPI ML service scaffold (`services/ml`)
+- [x] Shared types package (`packages/shared`)
+- [x] Supabase project + auth setup
+- [x] Prisma schema (initial models: User, Property)
+- [x] Docker Compose for local dev
+- [x] GitHub Actions CI pipeline (lint, type-check, test)
+- [x] Design system foundation (Tailwind config, tokens, shadcn/ui)
+- [x] Environment variable template (`.env.example`)
+- [x] README with setup instructions
+
+### Sprint 2 — Auth, Property Schema & Core APIs ✅
+- [x] Bug fixes from Sprint 1 QA (#2, #3, #4, #5)
+- [x] Property CRUD API (create, get, list, update, soft-delete)
+- [x] Expanded Prisma schema (yearBuilt, tenure, epcRating, etc.)
+- [x] Shared types: Property, User, Conversation, Message, VisualPayload, AgentState
+- [x] Onboarding flow: role selection, profile creation, preference wizard
+- [x] Auth: login, signup, Zustand auth store, session management
+- [x] Property listing page with search, filters, sorting
+- [x] Property detail page with gallery, stats, features, map placeholder
+- [x] Image upload endpoint with validation
+- [x] LangGraph agent skeleton: StateGraph, 5 nodes, checkpointing
+- [x] Mem0 client, memory search tool, Redis cache, profile store
+- [x] Property embedding pipeline (OpenAI text-embedding-3-large)
+- [x] Qdrant hybrid search setup (dense + BM25 sparse)
 
 ---
 
@@ -423,20 +438,24 @@ pavelo/
 
 | Component | Status | Notes |
 |---|---|---|
-| Monorepo scaffold | ❌ Not started | Turborepo + pnpm |
-| Next.js 15 app | ❌ Not started | `apps/web` |
-| Fastify API | ❌ Not started | `apps/api` |
-| LangGraph agent | ❌ Not started | `services/agent` |
-| ML service | ❌ Not started | `services/ml` |
-| Supabase Auth | ❌ Not started | |
-| Prisma schema | ❌ Not started | |
-| Docker Compose | ❌ Not started | |
-| CI/CD | ❌ Not started | GitHub Actions |
-| Design system | ❌ Not started | Tailwind + shadcn |
-| Qdrant | ❌ Not started | Sprint 4 |
+| Monorepo scaffold | ✅ Complete | Turborepo + pnpm workspaces |
+| Next.js 15 app | ✅ Complete | App Router, Tailwind 4, shadcn/ui |
+| Fastify API | ✅ Complete | tRPC + REST, property CRUD |
+| LangGraph agent | ✅ Skeleton | StateGraph, 5 nodes, Mem0 client |
+| ML service | ✅ Skeleton | Embedding pipeline, Qdrant setup |
+| Supabase Auth | ✅ Complete | Login, signup, middleware, Zustand store |
+| Prisma schema | ✅ Expanded | User, Property with full attributes |
+| Docker Compose | ✅ Complete | PostgreSQL, Redis, Qdrant, LiveKit |
+| CI/CD | ✅ Complete | GitHub Actions |
+| Design system | ✅ Complete | Tailwind + shadcn + design tokens |
+| Property pages | ✅ Complete | Listing, detail, search, filters |
+| Onboarding | ✅ Complete | Role selection, profile, preferences |
+| Image upload | ✅ Complete | Multipart, validation, URL storage |
+| Embedding pipeline | ✅ Skeleton | OpenAI + Qdrant upsert |
+| Qdrant | ✅ Configured | Hybrid dense + sparse collection setup |
 | LiveKit voice | ❌ Not started | Sprint 6 |
 
-> **Last updated:** Project kickoff — no code written yet.
+> **Last updated:** Sprint 2 complete — auth, property CRUD, onboarding, agent skeleton, embedding pipeline all delivered.
 
 ---
 
