@@ -13,7 +13,7 @@
  * Design: clean, professional, trust-building (navy + white)
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SellerStepAddress } from "@/components/seller/step-address";
 import { SellerStepDetails } from "@/components/seller/step-details";
@@ -81,6 +81,34 @@ export default function SellPage() {
   const [formData, setFormData] = useState<SellerFormData>(INITIAL_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+
+  /** Validate whether the current step has all required fields filled */
+  const isStepValid = useMemo(() => {
+    switch (step) {
+      case 1:
+        // Address: postcode and selected address required
+        return formData.postcode.trim().length >= 3 && formData.addressLine1.trim().length > 0;
+      case 2:
+        // Property type and bed/bath counts required
+        return (
+          formData.propertyType.trim().length > 0 &&
+          formData.bedrooms >= 1 &&
+          formData.bathrooms >= 1
+        );
+      case 3:
+        // At least 1 photo required
+        return formData.photos.length >= 1;
+      case 4:
+        // Description required (manual or AI-generated)
+        return formData.description.trim().length > 0;
+      case 5:
+        // Confirmation checkbox required
+        return confirmed;
+      default:
+        return false;
+    }
+  }, [step, formData, confirmed]);
 
   const updateForm = useCallback(
     (updates: Partial<SellerFormData>) => {
@@ -90,10 +118,14 @@ export default function SellPage() {
   );
 
   const handleNext = useCallback(() => {
-    setStep((s) => Math.min(s + 1, 5));
-  }, []);
+    // Only advance if current step is valid
+    if (isStepValid) {
+      setStep((s) => Math.min(s + 1, 5));
+    }
+  }, [isStepValid]);
 
   const handleBack = useCallback(() => {
+    setConfirmed(false);
     setStep((s) => Math.max(s - 1, 1));
   }, []);
 
@@ -184,7 +216,13 @@ export default function SellPage() {
             {step === 4 && (
               <SellerStepDescription formData={formData} onUpdate={updateForm} />
             )}
-            {step === 5 && <SellerStepReview formData={formData} />}
+            {step === 5 && (
+              <SellerStepReview
+                formData={formData}
+                confirmed={confirmed}
+                onConfirmChange={setConfirmed}
+              />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -206,15 +244,18 @@ export default function SellPage() {
         {step < 5 ? (
           <button
             onClick={handleNext}
-            className="rounded-[var(--radius-input)] bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-light)]"
+            disabled={!isStepValid}
+            aria-disabled={!isStepValid}
+            className="rounded-[var(--radius-input)] bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-light)] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Next →
           </button>
         ) : (
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="rounded-[var(--radius-input)] bg-[var(--color-gold)] px-5 py-2.5 text-sm font-bold text-[var(--color-primary)] transition-all hover:bg-[var(--color-gold-light)] disabled:opacity-50"
+            disabled={isSubmitting || !confirmed}
+            aria-disabled={isSubmitting || !confirmed}
+            className="rounded-[var(--radius-input)] bg-[var(--color-gold)] px-5 py-2.5 text-sm font-bold text-[var(--color-primary)] transition-all hover:bg-[var(--color-gold-light)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "Submitting..." : "Submit Property ✨"}
           </button>

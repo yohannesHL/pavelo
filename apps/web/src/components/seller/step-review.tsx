@@ -9,9 +9,11 @@ import type { SellerFormData } from "@/app/sell/page";
 
 interface Props {
   formData: SellerFormData;
+  confirmed: boolean;
+  onConfirmChange: (confirmed: boolean) => void;
 }
 
-export function SellerStepReview({ formData }: Props) {
+export function SellerStepReview({ formData, confirmed, onConfirmChange }: Props) {
   return (
     <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-white p-6 shadow-sm">
       <h2 className="font-[var(--font-heading)] text-xl font-bold text-[var(--foreground)]">
@@ -124,6 +126,20 @@ export function SellerStepReview({ formData }: Props) {
           </div>
         </div>
       </div>
+      {/* Confirmation Checkbox */}
+      <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--muted)]/30 p-4 transition-colors hover:bg-[var(--muted)]/60">
+        <input
+          type="checkbox"
+          checked={confirmed}
+          onChange={(e) => onConfirmChange(e.target.checked)}
+          className="mt-0.5 h-4 w-4 rounded border-[var(--border)] text-[var(--color-primary)] accent-[var(--color-primary)]"
+          aria-label="Confirm details are accurate"
+        />
+        <span className="text-xs text-[var(--foreground)] leading-relaxed">
+          I confirm that all details above are accurate to the best of my knowledge. I understand
+          that an AI-generated valuation will be produced and is for informational purposes only.
+        </span>
+      </label>
     </div>
   );
 }
