@@ -399,8 +399,8 @@ pavelo/
 | 6 | Voice Infrastructure | 11–12 | ✅ **Complete** |
 | 7 | Visual Intelligence Components | 13–14 | ✅ **Complete** |
 | **8** | Memory, Valuation & Seller Flow | 15–16 | ✅ **Complete** |
-| 9 | Agent Dashboard, B2B & Integrations | 17–18 | 🔜 **Next** |
-| 10 | Hardening, Performance & Launch Prep | 19–20 | ⬜ Planned |
+| 9 | Agent Dashboard, B2B & Integrations | 17–18 | ✅ **Complete** |
+| 10 | Hardening, Performance & Launch Prep | 19–20 | 🔜 **Next** |
 
 ### Sprint 1 — Infrastructure Foundations ✅
 - [x] Turborepo + pnpm workspace scaffold
@@ -508,6 +508,18 @@ pavelo/
 - [x] Saved properties board: Kanban at /saved (4 columns), comparison mode, tag management
 - [x] Push notification service: tRPC router, PushSubscription model, trigger functions, preferences page
 
+### Sprint 9 — Agent Dashboard, B2B & Integrations ✅
+- [x] Agency admin dashboard at /agency: KPI cards, lead pipeline, team management, conversation overview
+- [x] Conversation analytics at /agency/analytics: SVG charts, intent distribution, session histogram, satisfaction
+- [x] Human agent handover: LangGraph escalation node, context packet generation, handover alerts
+- [x] CRM webhooks: HMAC-SHA256 delivery, 3 retries, Zapier/Make compatible payloads
+- [x] White-label configuration at /agency/settings/branding: logo, colors, persona name, live preview
+- [x] Multi-agency tenancy: Prisma models, row-level scoping, agency membership verification
+- [x] Stripe billing integration at /agency/billing: plans, usage meters, invoices, checkout
+- [x] Feedback loop: thumbs up/down component, correction input, JSONL export for fine-tuning
+- [x] Planning applications map: SVG map, status pins, distance rings, impact indicators
+- [x] Flood & environmental risk map: zone overlays, risk breakdown, FloodRiskBadge component
+
 ---
 
 ## 8. Current State
@@ -566,8 +578,18 @@ pavelo/
 | Property comparison | ✅ Complete | 2-4 side-by-side, best/worst highlighting |
 | Saved properties | ✅ Complete | Kanban board at /saved, 4 columns, comparison mode |
 | Push notifications | ✅ Complete | tRPC router, preferences, trigger functions |
+| Agency dashboard | ✅ Complete | KPI cards, lead pipeline, team mgmt, /agency |
+| Conversation analytics | ✅ Complete | SVG charts, intent dist, session histogram |
+| Human handover | ✅ Complete | LangGraph escalation node, context packets |
+| CRM webhooks | ✅ Complete | HMAC-SHA256, 3 retries, Zapier compatible |
+| White-label | ✅ Complete | Branding settings, CSS overrides, live preview |
+| Multi-tenancy | ✅ Complete | Agency model, row-level scoping, membership |
+| Stripe billing | ✅ Complete | Plans, usage meters, invoices, /agency/billing |
+| Feedback loop | ✅ Complete | Thumbs up/down, corrections, JSONL export |
+| Planning apps map | ✅ Complete | SVG map, status pins, impact indicators |
+| Flood risk map | ✅ Complete | Zone overlays, risk breakdown, FloodRiskBadge |
 
-> **Last updated:** Sprint 8 complete — cross-session memory consolidation, seller onboarding wizard, AI valuation engine with comparable search, viewing booking system, mortgage calculator widget, property comparison table, Kanban-style saved properties board, and push notification service.
+> **Last updated:** Sprint 9 complete — agency admin dashboard with KPI cards, lead pipeline, team management, conversation analytics with SVG charts, human agent handover with LangGraph escalation node, CRM webhooks with HMAC-SHA256 delivery, white-label branding with live preview, Stripe billing integration, feedback loop with JSONL export, planning applications map, and flood risk map with zone overlays.
 
 ---
 
