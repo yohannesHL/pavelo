@@ -61,13 +61,7 @@ async def classify_scene(image: Image.Image) -> list[dict[str, Any]]:
     prompts = list(SCENE_PROMPTS.values())
     labels = list(SCENE_PROMPTS.keys())
 
-    results = await clip_loader.zero_shot_classify(
-        image=image,
-        labels=labels,
-        prompt_template="{}",
-    )
-
-    # Override: use the full prompts for better classification
+    # Use full descriptive prompts for better classification accuracy
     import torch
 
     img_tensor = clip_loader.preprocess_image(image).unsqueeze(0).to(clip_loader._device)
