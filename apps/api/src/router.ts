@@ -4,6 +4,7 @@ import type { Context } from "./context.js";
 import { prisma } from "./lib/prisma.js";
 import { router, publicProcedure, protectedProcedure } from "./router-helpers.js";
 import { conversationRouter } from "./routes/conversation.js";
+import { voiceRouter } from "./routes/voice.js";
 
 // --- Zod Schemas ---
 
@@ -488,6 +489,9 @@ export const appRouter = router({
 
   /** Conversations — create, list, manage chat sessions (S5-03) */
   conversation: conversationRouter,
+
+  /** Voice sessions — create, manage, monitor voice calls (S6-01, S6-07) */
+  voice: voiceRouter,
 
   /** Search analytics (S4-09) */
   searchAnalytics: router({

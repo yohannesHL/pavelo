@@ -1,4 +1,4 @@
-"""Pavelo Agent Service — AI orchestration with LangGraph (S5-04, S5-06)."""
+"""Pavelo Agent Service — AI orchestration with LangGraph (S5-04, S5-06, S6-03)."""
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from typing import Optional
 import json
 import uuid
+import asyncio
 
 import structlog
 from langchain_core.messages import HumanMessage
@@ -29,10 +30,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Pavelo Agent Service",
-    version="0.2.0",
-    description="AI Agent orchestration service for Pavelo/Xara",
+    version="0.3.0",
+    description="AI Agent orchestration service for Pavelo/Xara (chat + voice)",
     lifespan=lifespan,
 )
+
+# Track active voice pipelines
+_active_pipelines: dict[str, "VoicePipeline"] = {}
 
 
 # --- Request / Response Models ---
@@ -63,7 +67,8 @@ async def health():
     return {
         "status": "ok",
         "service": "agent",
-        "version": "0.2.0",
+        "version": "0.3.0",
+        "active_voice_sessions": len(_active_pipelines),
     }
 
 
@@ -203,3 +208,120 @@ async def chat_stream(request: ChatRequest):
     """
     request.stream = True
     return await chat(request)
+
+
+# --- Voice Pipeline Endpoints (S6-03) ---
+
+class VoiceSessionRequest(BaseModel):
+    """Request to start a voice pipeline for a room."""
+    room_name: str
+    user_id: str
+    conversation_id: str
+    session_id: Optional[str] = None
+    language: str = "en"
+
+
+class VoiceSessionResponse(BaseModel):
+    """Response after starting/stopping a voice pipeline."""
+    status: str
+    room_name: str
+    message: str
+
+
+@app.post("/api/v1/voice/start")
+async def start_voice_pipeline(request: VoiceSessionRequest):
+    """Start a voice pipeline for a LiveKit room.
+
+    Called by the API gateway after creating a voice session.
+    The pipeline joins the LiveKit room as the agent participant.
+    """
+    if request.room_name in _active_pipelines:
+        return VoiceSessionResponse(
+            status="already_running",
+            room_name=request.room_name,
+            message="Pipeline already running for this room",
+        )
+
+    try:
+        from src.voice.pipeline import VoicePipeline
+
+        pipeline = VoicePipeline(
+            room_name=request.room_name,
+            user_id=request.user_id,
+            conversation_id=request.conversation_id,
+            language=request.language,
+            session_id=request.session_id,
+        )
+
+        _active_pipelines[request.room_name] = pipeline
+
+        # Start pipeline in background
+        asyncio.create_task(_run_pipeline(request.room_name, pipeline))
+
+        logger.info(
+            "voice_pipeline_started",
+            room=request.room_name,
+            user_id=request.user_id,
+        )
+
+        return VoiceSessionResponse(
+            status="started",
+            room_name=request.room_name,
+            message="Voice pipeline started",
+        )
+
+    except Exception as e:
+        logger.error("voice_pipeline_start_error", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to start pipeline: {str(e)}")
+
+
+async def _run_pipeline(room_name: str, pipeline):
+    """Run voice pipeline in background and clean up on completion."""
+    try:
+        await pipeline.start()
+    except Exception as e:
+        logger.error("voice_pipeline_runtime_error", room=room_name, error=str(e))
+    finally:
+        _active_pipelines.pop(room_name, None)
+        logger.info("voice_pipeline_cleaned_up", room=room_name)
+
+
+@app.post("/api/v1/voice/stop")
+async def stop_voice_pipeline(request: VoiceSessionRequest):
+    """Stop a voice pipeline for a LiveKit room."""
+    pipeline = _active_pipelines.get(request.room_name)
+
+    if not pipeline:
+        return VoiceSessionResponse(
+            status="not_found",
+            room_name=request.room_name,
+            message="No active pipeline for this room",
+        )
+
+    try:
+        await pipeline.stop()
+        _active_pipelines.pop(request.room_name, None)
+
+        return VoiceSessionResponse(
+            status="stopped",
+            room_name=request.room_name,
+            message="Voice pipeline stopped",
+        )
+    except Exception as e:
+        logger.error("voice_pipeline_stop_error", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to stop pipeline: {str(e)}")
+
+
+@app.get("/api/v1/voice/status/{room_name}")
+async def get_voice_status(room_name: str):
+    """Get the status of a voice pipeline."""
+    pipeline = _active_pipelines.get(room_name)
+
+    if not pipeline:
+        return {"status": "inactive", "room_name": room_name}
+
+    return {
+        "status": "active",
+        "room_name": room_name,
+        "metrics": pipeline.metrics,
+    }

@@ -177,6 +177,45 @@ h1, h2, h3, h4, h5, h6 {
   animation: pulse-subtle 2s ease-in-out infinite;
 }
 
+/* ─── Voice Mode Animations (S6-05) ─── */
+
+/* Avatar speaking pulse — gold glow */
+@keyframes voice-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+/* Avatar thinking pulse — blue */
+@keyframes voice-think {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.04); opacity: 0.6; }
+}
+
+/* Thinking dots bounce */
+@keyframes voice-dot {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in.fade-in {
+  animation: fade-in var(--duration, 300ms) ease-out;
+}
+
+/* Voice page — hide header nav for immersive experience */
+.voice-page {
+  --voice-bg: #0D1B2A;
+  --voice-bg-mid: #132B4D;
+  --voice-bg-end: #1B3A6B;
+  --voice-gold: #F4A261;
+  --voice-gold-light: #F6B87A;
+}
+
 /* Hide scrollbar for carousel */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
