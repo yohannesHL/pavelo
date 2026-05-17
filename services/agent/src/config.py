@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
     database_url: str = "postgresql://postgres:postgres@localhost:5432/pavelo"
     qdrant_url: str = "http://localhost:6333"
+    openai_api_key: str = ""
+    mem0_api_key: str = ""
+    mem0_org_id: str = ""
 
     class Config:
         env_file = ".env"

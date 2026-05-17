@@ -2,7 +2,14 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
+import {
+  fastifyTRPCPlugin,
+  type FastifyTRPCPluginOptions,
+} from "@trpc/server/adapters/fastify";
 import { config } from "dotenv";
+import { appRouter, type AppRouter } from "./router.js";
+import { createContext } from "./context.js";
+import { imageRoutes } from "./routes/upload.js";
 
 config();
 
@@ -13,7 +20,10 @@ const app = Fastify({
 // --- Middleware ---
 await app.register(helmet);
 await app.register(cors, {
-  origin: process.env.NODE_ENV === "development" ? true : ["http://localhost:3000"],
+  origin:
+    process.env.NODE_ENV === "development"
+      ? true
+      : ["http://localhost:3000"],
   credentials: true,
 });
 await app.register(rateLimit, {
@@ -21,11 +31,23 @@ await app.register(rateLimit, {
   timeWindow: "1 minute",
 });
 
+// --- tRPC ---
+await app.register(fastifyTRPCPlugin, {
+  prefix: "/trpc",
+  trpcOptions: {
+    router: appRouter,
+    createContext,
+  } satisfies FastifyTRPCPluginOptions<AppRouter>["trpcOptions"],
+});
+
+// --- REST Routes ---
+await app.register(imageRoutes);
+
 // --- Health Check ---
 app.get("/health", async () => {
   return {
     status: "ok",
-    version: "0.1.0",
+    version: "0.2.0",
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
   };

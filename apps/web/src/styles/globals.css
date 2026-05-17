@@ -2,17 +2,23 @@
 @import "./tokens.css";
 
 @theme {
-  /* Colors */
-  --color-primary: var(--color-primary);
-  --color-accent: var(--color-accent);
-  --color-gold: var(--color-gold);
+  /* Colors — literal values to avoid circular reference with tokens.css */
+  --color-primary: #1B3A6B;
+  --color-accent: #2E86AB;
+  --color-gold: #F4A261;
+  --color-primary-light: #2a5298;
+  --color-accent-light: #45a0c4;
+  --color-gold-light: #f6b87a;
   --color-primary-foreground: #ffffff;
   --color-accent-foreground: #ffffff;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
 
   /* Radius */
-  --radius-card: var(--radius-card);
-  --radius-input: var(--radius-input);
-  --radius-badge: var(--radius-badge);
+  --radius-card: 12px;
+  --radius-input: 8px;
+  --radius-badge: 4px;
 }
 
 body {
