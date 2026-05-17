@@ -91,6 +91,9 @@ export function ChatMessageList({
   return (
     <div
       ref={containerRef}
+      role="log"
+      aria-live="polite"
+      aria-label="Chat messages"
       className="flex-1 overflow-y-auto scroll-smooth px-2 py-4"
     >
       <div className="mx-auto max-w-3xl space-y-1">
@@ -103,7 +106,7 @@ export function ChatMessageList({
               />
               {/* Render visual payloads inline below the message */}
               {msg.visualPayloads && msg.visualPayloads.length > 0 && (
-                <div className="ml-11 mr-4 mt-2 space-y-2">
+                <div className="ml-11 mr-4 mt-2 space-y-2" aria-label="Visual content">
                   {msg.visualPayloads.map((vp, vpIndex) => (
                     <VisualPayloadRenderer
                       key={`${msg.id}-vp-${vpIndex}`}

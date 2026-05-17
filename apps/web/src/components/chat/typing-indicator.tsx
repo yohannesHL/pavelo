@@ -10,6 +10,8 @@ export function TypingIndicator() {
   return (
     <motion.div
       className="flex items-center gap-3 px-4 py-2"
+      role="status"
+      aria-label="Xara is typing"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}

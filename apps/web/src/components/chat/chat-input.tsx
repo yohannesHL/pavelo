@@ -86,6 +86,9 @@ export function ChatInput({
             placeholder={placeholder}
             disabled={disabled}
             rows={1}
+            role="textbox"
+            aria-label="Message Xara"
+            aria-multiline="true"
             className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--muted)] px-4 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:border-[var(--color-accent)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20 transition-all disabled:opacity-50"
             style={{ maxHeight: "160px" }}
           />
@@ -96,6 +99,7 @@ export function ChatInput({
           type="button"
           onClick={handleSend}
           disabled={!canSend}
+          aria-label="Send message"
           className={`
             flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all
             ${
