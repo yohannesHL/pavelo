@@ -44,7 +44,7 @@ def classify_scene_task(self, image_url: str, property_id: str, job_id: str) -> 
 
         from src.models.scene_classifier import classify_scene
 
-        results = asyncio.get_event_loop().run_until_complete(classify_scene(image))
+        results = asyncio.run(classify_scene(image))
 
         logger.info(
             "scene_task_complete",
@@ -101,7 +101,7 @@ def classify_style_task(self, image_url: str, property_id: str, job_id: str) -> 
 
         from src.models.style_classifier import classify_style
 
-        results = asyncio.get_event_loop().run_until_complete(classify_style(image, top_k=3))
+        results = asyncio.run(classify_style(image, top_k=3))
 
         logger.info(
             "style_task_complete",
