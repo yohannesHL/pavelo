@@ -425,12 +425,32 @@ async def _get_market_trend(postcode: str) -> str:
 
 
 def _get_region(postcode: str) -> str:
-    """Map postcode prefix to region."""
-    prefix = postcode.upper().strip()[:2]
-    
-    london_prefixes = {"E", "EC", "N", "NW", "SE", "SW", "W", "WC"}
-    if prefix in london_prefixes or prefix[0] in {"E", "N", "W"} and len(prefix) == 1:
+    """Map postcode prefix to region.
+
+    London detection uses the full set of inner + outer London postcode areas.
+    We extract the alpha prefix from the postcode (e.g. "SW" from "SW11 1AA",
+    "E" from "E1 6AN") and check against known London areas.
+    """
+    cleaned = postcode.upper().strip()
+
+    # Extract the alphabetic prefix (e.g. "SW", "EC", "E", "N", "BR")
+    alpha_prefix = ""
+    for ch in cleaned:
+        if ch.isalpha():
+            alpha_prefix += ch
+        else:
+            break
+
+    # Inner London postcode areas
+    inner_london = {"E", "EC", "N", "NW", "SE", "SW", "W", "WC"}
+    # Outer London postcode areas
+    outer_london = {"BR", "CR", "DA", "EN", "HA", "IG", "KT", "RM", "SM", "TW", "UB"}
+    london_prefixes = inner_london | outer_london
+
+    if alpha_prefix in london_prefixes:
         return "london"
+
+    prefix = cleaned[:2]
     
     region_map = {
         "BN": "south_east", "CT": "south_east", "GU": "south_east",
