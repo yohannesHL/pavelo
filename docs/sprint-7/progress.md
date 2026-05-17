@@ -11,10 +11,13 @@
 - [x] tRPC endpoints for all services
 
 ## Phase 2: Map-Based Visuals (S7-01, S7-04, S7-05, S7-06)
-- [ ] Crime map visual
-- [ ] School catchment map
-- [ ] Transport isochrone
-- [ ] Amenities map
+- [x] Shared MapContainer, MapPin, MapLegend components
+- [x] Crime map visual (S7-01)
+- [x] School catchment map (S7-04)
+- [x] Transport isochrone (S7-05)
+- [x] Amenities map (S7-06)
+- [x] Standalone /intelligence/crime page
+- [x] VisualPayloadRenderer updated for S7 visual types
 
 ## Phase 3: Charts & Data Visuals (S7-02, S7-03, S7-07, S7-08)
 - [ ] Price heatmap
