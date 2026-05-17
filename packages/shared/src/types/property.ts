@@ -3,7 +3,7 @@ import { z } from "zod";
 // --- Property Type ---
 export const PropertyType = z.enum([
   "detached",
-  "semi-detached",
+  "semi_detached",
   "terraced",
   "flat",
   "bungalow",
@@ -24,7 +24,7 @@ export const PropertyStatus = z.enum([
 export type PropertyStatus = z.infer<typeof PropertyStatus>;
 
 // --- Tenure ---
-export const Tenure = z.enum(["freehold", "leasehold", "share-of-freehold"]);
+export const Tenure = z.enum(["freehold", "leasehold", "share_of_freehold"]);
 export type Tenure = z.infer<typeof Tenure>;
 
 // --- Address ---
