@@ -393,8 +393,8 @@ pavelo/
 |--------|-------|-------|--------|
 | **1** | Infrastructure Foundations | 1–2 | ✅ **Complete** |
 | **2** | Auth, Property Schema & Core APIs | 3–4 | ✅ **Complete** |
-| 3 | Image Intelligence ML Pipeline | 5–6 | 🔜 **Next** |
-| 4 | Hybrid RAG Search Engine | 7–8 | ⬜ Planned |
+| **3** | Image Intelligence ML Pipeline | 5–6 | ✅ **Complete** |
+| 4 | Hybrid RAG Search Engine | 7–8 | 🔜 **Next** |
 | 5 | Chat Interface & Text Agent | 9–10 | ⬜ Planned |
 | 6 | Voice Infrastructure | 11–12 | ⬜ Planned |
 | 7 | Visual Intelligence Components | 13–14 | ⬜ Planned |
@@ -432,6 +432,18 @@ pavelo/
 - [x] Property embedding pipeline (OpenAI text-embedding-3-large)
 - [x] Qdrant hybrid search setup (dense + BM25 sparse)
 
+### Sprint 3 — Image Intelligence ML Pipeline ✅
+- [x] CLIP ViT-L/14 model loader with quantised weights, batch inference
+- [x] Scene classifier: exterior/interior/garden/floor-plan/aerial (CLIP zero-shot)
+- [x] Architectural style classifier: 10-class with top-3 predictions
+- [x] GPT-4V interior attribute extraction (flooring, kitchen, ceiling, light, features)
+- [x] Era estimation (6 categories) + condition scoring (1-10 scale)
+- [x] Feature tagging aggregation into PropertyAttributes JSON
+- [x] Embedding regeneration with image-derived attributes
+- [x] Admin ML dashboard at `/admin/ml` (job queue, results viewer, manual override)
+- [x] Celery + Redis async job queue with retry policies
+- [x] Bulk import tool (JSON + CSV property ingestion)
+
 ---
 
 ## 8. Current State
@@ -442,7 +454,7 @@ pavelo/
 | Next.js 15 app | ✅ Complete | App Router, Tailwind 4, shadcn/ui |
 | Fastify API | ✅ Complete | tRPC + REST, property CRUD |
 | LangGraph agent | ✅ Skeleton | StateGraph, 5 nodes, Mem0 client |
-| ML service | ✅ Skeleton | Embedding pipeline, Qdrant setup |
+| ML service | ✅ Complete | CLIP, GPT-4V, classifiers, job queue |
 | Supabase Auth | ✅ Complete | Login, signup, middleware, Zustand store |
 | Prisma schema | ✅ Expanded | User, Property with full attributes |
 | Docker Compose | ✅ Complete | PostgreSQL, Redis, Qdrant, LiveKit |
@@ -451,11 +463,17 @@ pavelo/
 | Property pages | ✅ Complete | Listing, detail, search, filters |
 | Onboarding | ✅ Complete | Role selection, profile, preferences |
 | Image upload | ✅ Complete | Multipart, validation, URL storage |
-| Embedding pipeline | ✅ Skeleton | OpenAI + Qdrant upsert |
-| Qdrant | ✅ Configured | Hybrid dense + sparse collection setup |
+| Embedding pipeline | ✅ Complete | OpenAI + Qdrant + image enrichment |
+| Qdrant | ✅ Configured | Hybrid dense + sparse, image attribute payload |
+| Image classifiers | ✅ Complete | Scene (5-class), style (10-class), era (6-class) |
+| Vision LLM | ✅ Complete | GPT-4V interior analysis, condition scoring |
+| Feature aggregation | ✅ Complete | PropertyAttributes model, 20+ feature tags |
+| Admin dashboard | ✅ Complete | ML pipeline at /admin/ml |
+| Bulk import | ✅ Complete | JSON + CSV property ingestion |
+| Async job queue | ✅ Complete | Celery + Redis, retry policies |
 | LiveKit voice | ❌ Not started | Sprint 6 |
 
-> **Last updated:** Sprint 2 complete — auth, property CRUD, onboarding, agent skeleton, embedding pipeline all delivered.
+> **Last updated:** Sprint 3 complete — full image intelligence ML pipeline delivered (CLIP, GPT-4V, classifiers, aggregation, re-embedding, admin UI, bulk import).
 
 ---
 
