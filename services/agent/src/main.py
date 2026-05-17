@@ -100,7 +100,7 @@ async def chat(request: ChatRequest):
         messages=[HumanMessage(content=request.message)],
     )
 
-    config = {"configurable": {"thread_id": request.conversation_id}}
+    config = {"configurable": {"thread_id": request.conversation_id, "user_id": request.user_id}}
 
     if request.stream:
         return StreamingResponse(

@@ -13,6 +13,7 @@ from typing import Any, Optional
 
 import httpx
 import structlog
+from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 
 from src.config import settings
@@ -172,6 +173,8 @@ async def book_viewing(
     date: str,
     time: str,
     notes: Optional[str] = None,
+    *,
+    config: RunnableConfig,
 ) -> str:
     """Book a property viewing appointment.
     
@@ -186,10 +189,17 @@ async def book_viewing(
     Returns:
         JSON string with booking confirmation.
     """
-    # Note: user_id would come from the agent state in production
+    # Extract user_id from LangGraph config (set by the graph invocation)
+    user_id = (config.get("configurable") or {}).get("user_id", "")
+    if not user_id:
+        return json.dumps({
+            "status": "error",
+            "message": "Cannot book a viewing without a logged-in user. Please sign in first.",
+        })
+
     result = await book_viewing_impl(
         property_id=property_id,
-        user_id="",  # populated from state
+        user_id=user_id,
         date=date,
         time=time,
         notes=notes,
