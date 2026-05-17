@@ -20,10 +20,12 @@
 - [x] VisualPayloadRenderer updated for S7 visual types
 
 ## Phase 3: Charts & Data Visuals (S7-02, S7-03, S7-07, S7-08)
-- [ ] Price heatmap
-- [ ] Area statistics dashboard
-- [ ] Price history chart
-- [ ] Market trend dashboard
+- [x] Price heatmap (S7-02)
+- [x] Area statistics dashboard with SVG radar chart (S7-03)
+- [x] Price history chart with SVG area chart (S7-07)
+- [x] Market trend dashboard with multi-series line chart + forecast (S7-08)
+- [x] Standalone pages: /intelligence/area/[postcode], /intelligence/market
+- [x] VisualPayloadRenderer updated for all chart types
 
 ## Phase 4: Agent Visual Tools (S7-10)
 - [ ] get_area_stats tool

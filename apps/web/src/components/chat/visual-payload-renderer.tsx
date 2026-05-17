@@ -16,6 +16,10 @@ import { CrimeMap } from "@/components/intelligence/crime-map";
 import { SchoolMap } from "@/components/intelligence/school-map";
 import { TransportIsochrone } from "@/components/intelligence/transport-isochrone";
 import { AmenityMap } from "@/components/intelligence/amenity-map";
+import { PriceHeatmap } from "@/components/intelligence/price-heatmap";
+import { AreaDashboard } from "@/components/intelligence/area-dashboard";
+import { PriceHistoryChart } from "@/components/intelligence/price-history-chart";
+import { MarketTrendDashboard } from "@/components/intelligence/market-trend-dashboard";
 import type { VisualPayload } from "@/stores/chat-store";
 
 interface VisualPayloadRendererProps {
@@ -123,11 +127,48 @@ function renderPayload(payload: VisualPayload) {
 
     case "price_chart":
     case "price_history_chart":
+      return (
+        <PriceHistoryChart
+          history={(payload.data as any)?.history || []}
+          averagePrices={(payload.data as any)?.averagePrices || []}
+          postcode={(payload.data as any)?.postcode || ""}
+          yoyChange={(payload.data as any)?.yoyChange ?? null}
+          compact
+        />
+      );
+
     case "price_heatmap":
+      return (
+        <PriceHeatmap
+          sales={(payload.data as any)?.sales || []}
+          center={(payload.data as any)?.center || { lat: 51.5074, lng: -0.1278 }}
+          averagePrice={(payload.data as any)?.averagePrice || 0}
+          medianPrice={(payload.data as any)?.medianPrice || 0}
+          priceRange={(payload.data as any)?.priceRange || { min: 0, max: 0 }}
+          postcode={(payload.data as any)?.postcode || ""}
+          compact
+        />
+      );
+
     case "market_trend_chart":
+      return (
+        <MarketTrendDashboard
+          indices={(payload.data as any)?.indices || []}
+          forecast={(payload.data as any)?.forecast}
+          compact
+        />
+      );
+
     case "area_dashboard":
     case "area_stats":
-      return <ChartPlaceholder data={payload.data} title={payload.title} type={payload.type} />;
+      return (
+        <AreaDashboard
+          demographics={(payload.data as any)?.demographics || {}}
+          scores={(payload.data as any)?.scores || {}}
+          postcode={(payload.data as any)?.postcode || ""}
+          compact
+        />
+      );
 
     default:
       return (
