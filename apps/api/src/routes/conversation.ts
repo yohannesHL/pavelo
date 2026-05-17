@@ -96,7 +96,7 @@ export const conversationRouter = router({
           id: c.id,
           title: c.title,
           metadata: c.metadata,
-          firstMessage: c.messages[0] || null,
+          firstMessage: c.messages[0] ?? null,
           messageCount: c._count.messages,
           createdAt: c.createdAt,
           updatedAt: c.updatedAt,
@@ -291,7 +291,7 @@ export const conversationRouter = router({
       return conversations.map((c) => ({
         id: c.id,
         title: c.title,
-        firstMessage: c.messages[0] || null,
+        firstMessage: c.messages[0] ?? null,
         messageCount: c._count.messages,
         createdAt: c.createdAt,
         updatedAt: c.updatedAt,

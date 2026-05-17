@@ -154,9 +154,13 @@ async function relayToAgent(
             if (data === "[DONE]") continue;
 
             try {
-              const event = JSON.parse(data);
+              const event: {
+                type: string;
+                content?: string;
+                payload?: Record<string, unknown>;
+              } = JSON.parse(data);
 
-              if (event.type === "token") {
+              if (event.type === "token" && event.content) {
                 fullContent += event.content;
                 broadcastToRoom(conversationId, {
                   type: "agent_response",
@@ -165,7 +169,7 @@ async function relayToAgent(
                   streaming: true,
                   done: false,
                 });
-              } else if (event.type === "visual_payload") {
+              } else if (event.type === "visual_payload" && event.payload) {
                 visualPayloads.push(event.payload);
                 broadcastToRoom(conversationId, {
                   type: "visual_payload",
@@ -206,10 +210,14 @@ async function relayToAgent(
       }
     } else {
       // Non-streaming JSON response
-      const data = await response.json();
+      const data = (await response.json()) as {
+        response?: string;
+        content?: string;
+        visual_payloads?: Record<string, unknown>[];
+      };
 
       const agentContent = data.response || data.content || "I'm not sure how to help with that.";
-      const visualPayloads = data.visual_payloads || [];
+      const nonStreamPayloads = data.visual_payloads || [];
 
       // Send complete response
       broadcastToRoom(conversationId, {
@@ -221,7 +229,7 @@ async function relayToAgent(
       });
 
       // Send visual payloads
-      for (const vp of visualPayloads) {
+      for (const vp of nonStreamPayloads) {
         broadcastToRoom(conversationId, {
           type: "visual_payload",
           conversationId,
@@ -235,7 +243,7 @@ async function relayToAgent(
           conversationId,
           role: "assistant",
           content: agentContent,
-          visualPayloads: visualPayloads.length > 0 ? visualPayloads : [],
+          visualPayloads: nonStreamPayloads.length > 0 ? nonStreamPayloads : [],
         },
       });
 
@@ -244,8 +252,9 @@ async function relayToAgent(
         data: {},
       });
     }
-  } catch (error: any) {
-    console.error("Agent relay error:", error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Agent relay error:", message);
     broadcastToRoom(conversationId, {
       type: "error",
       conversationId,
