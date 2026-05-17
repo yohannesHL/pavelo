@@ -49,3 +49,57 @@ h1, h2, h3, h4, h5, h6 {
     --border: #262626;
   }
 }
+
+/* Range slider thumb styling */
+.slider-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
+  cursor: pointer;
+  pointer-events: all;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.slider-thumb::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+}
+
+.slider-thumb::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
+  cursor: pointer;
+  pointer-events: all;
+}
+
+/* Smooth animations with reduced-motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Bottom sheet animation */
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-in.slide-in-from-bottom {
+  animation: slide-in-from-bottom 300ms ease-out;
+}
