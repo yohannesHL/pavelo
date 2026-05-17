@@ -28,9 +28,24 @@
   - Fallback to DB text search if ML service unavailable
   - Added SavedSearch + SearchEvent Prisma models
 
-### Phase 3 — Search UI & Map (S4-05, S4-06)
-- [ ] S4-05: Search results UI (revamp)
-- [ ] S4-06: Mapbox integration
+### Phase 3 — Search UI & Map (S4-05, S4-06) ✅
+- [x] S4-05: Search results UI (revamp)
+  - `components/search/search-bar.tsx` — NL search bar with suggestions dropdown
+  - `components/search/filter-sidebar.tsx` — collapsible filter sidebar with price slider, bedroom toggles, property type grid, location input, sort controls
+  - `components/search/search-property-card.tsx` — grid + list layout cards with search score
+  - `components/search/search-results-grid.tsx` — infinite scroll grid with loading skeletons, empty state
+  - `components/search/view-controls.tsx` — grid/list/map toggle
+  - `components/ui/range-slider.tsx` — dual-range slider component
+  - Mobile: filter sidebar → bottom sheet, responsive grid
+  - Active filter tags with remove buttons
+- [x] S4-06: Mapbox integration
+  - `components/maps/property-map.tsx` — interactive map with property pins
+  - Price-labeled pins with status-based coloring
+  - Click pin → property card popup
+  - Dark/light theme toggle
+  - Map + list split view when in map mode
+  - Pin highlights sync with list hover
+  - Placeholder implementation ready for Mapbox GL JS integration
 
 ### Phase 4 — Advanced Features (S4-07, S4-08, S4-09, S4-10)
 - [ ] S4-07: Saved searches + alerts
