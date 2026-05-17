@@ -30,3 +30,8 @@
 ## Phase 5: Embedding Pipeline Prep (S2-08, S2-09) ✅
 - [x] Property embedding pipeline
 - [x] BM25 sparse index setup
+
+## QA Bug Fixes ✅
+- [x] #7 (MAJOR): Aligned shared PropertyType/Tenure enum values from kebab-case to snake_case to match Prisma schema, API router, and frontend components
+- [x] #8 (BLOCKER): Rewrote tRPC `createContext` to extract JWT from Authorization header and validate via `supabaseAdmin.auth.getUser()` — protectedProcedure endpoints now authenticate correctly
+- [ ] #9 (MINOR): Signup page placeholder — deferred (minor, not blocking)
