@@ -57,6 +57,13 @@ app.get("/health", async () => {
   };
 });
 
+// --- Search Cache Metrics (S10-04) ---
+import { getSearchCacheMetrics } from "./lib/search-cache.js";
+
+app.get("/api/v1/search/cache-metrics", async () => {
+  return getSearchCacheMetrics();
+});
+
 // --- Voice Metrics REST Endpoint (S6-10) ---
 app.get("/api/v1/voice/metrics", async (request) => {
   // This is a convenience REST alias for the tRPC voice.getMetrics endpoint
