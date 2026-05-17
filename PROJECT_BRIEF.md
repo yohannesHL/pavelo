@@ -1,0 +1,622 @@
+# PROJECT_BRIEF.md — Pavelo / Xara
+
+> **Single source of truth** for every AI-team chat (Nova, Sage, Milo, Ivy, Kira, Dash, Remy).
+> Updated by **Remy (Producer)** at the start of each sprint.
+> Repository: `yohannesHL/pavelo`
+
+---
+
+## 1. Project Overview
+
+| Field | Value |
+|---|---|
+| **Product** | Pavelo |
+| **AI Agent** | Xara — voice-capable, personalised real estate AI agent |
+| **Tagline** | Your AI estate agent that listens, remembers, and delivers. |
+| **Repo** | `yohannesHL/pavelo` |
+| **Monorepo** | Turborepo + pnpm workspaces |
+| **Stack** | Next.js 15 · Fastify · Python (LangGraph) · Qdrant · LiveKit · Supabase |
+| **MVP Target** | 10 sprints / 20 weeks |
+
+---
+
+## 2. Concept / Product Description
+
+Pavelo is a next-generation real estate SaaS platform. Its core product is **Xara** — a persistent, intelligent AI estate agent capable of conducting full buyer and seller conversations via voice, executing complex multi-step property searches, and surfacing rich visual intelligence across properties, neighbourhoods, and market data.
+
+### Xara — The AI Agent
+
+Xara is not a chatbot. She is a **voice-first AI estate agent** with:
+
+- **Real conversational intelligence** — full natural-language dialogue via WebRTC voice, not IVR menus or scripted flows.
+- **Persistent cross-session memory** — Xara remembers your preferences, search history, and intent across every conversation (non-IID). Powered by Mem0 (episodic), Redis (short-term), and PostgreSQL (long-term profiles).
+- **Hybrid RAG property search** — semantic + keyword querying via Qdrant over rich structured property embeddings. Xara doesn't just filter — she *understands* what you're looking for.
+- **Image intelligence** — a CV pipeline (CLIP ViT-L/14, GPT-4V) extracts architectural style, era, interior attributes into queryable embeddings. Ask Xara for "a Victorian terrace with a modern kitchen" and she finds it.
+- **Rich visual intelligence** — crime maps, amenity overlays, school catchments, price heatmaps, market trend charts, and more rendered inline during conversation.
+
+### Buyer Flow
+
+1. **Onboard** → Select "Buyer" role, set location, budget, preferences.
+2. **Converse** → Talk to Xara via voice or chat. Describe what you want naturally.
+3. **Search** → Xara runs hybrid RAG queries, surfaces property cards, maps, comparables.
+4. **Explore** → Drill into property details, neighbourhood stats, school catchments, crime data, transport links.
+5. **Compare** → Side-by-side property comparison with AI-generated summaries.
+6. **Act** → Book viewings, get mortgage estimates, save favourites, share with partner.
+
+### Seller Flow
+
+1. **Onboard** → Select "Seller" role, enter property details.
+2. **Valuation** → Xara provides AI-driven valuation using sold price comparables, market trends, and property attributes.
+3. **Market Intel** → Review neighbourhood demand, price heatmaps, buyer activity.
+4. **Optimise** → Xara suggests improvements to maximise sale price (based on image analysis and market data).
+5. **Connect** → Link to estate agents via B2B Agent Dashboard (CRM sync, lead capture).
+
+### Key Differentiators
+
+- Voice-first AI estate agent: real conversational intelligence, not IVR menus
+- Persistent cross-session memory: agent remembers preferences, history, intent
+- Hybrid RAG property search: semantic + keyword querying via Qdrant
+- Image intelligence pipeline: CV model extracts architectural attributes into queryable embeddings
+- Rich visual intelligence: crime maps, school catchments, price heatmaps rendered inline
+- Polyglot microservices: Next.js 15 · Fastify · Python LangGraph · Qdrant · LiveKit
+
+---
+
+## 3. Tech Stack
+
+### Frontend
+| Technology | Purpose |
+|---|---|
+| Next.js 15 (App Router) | React framework, SSR/SSG |
+| TypeScript | Type safety |
+| Tailwind CSS 4 | Utility-first styling |
+| shadcn/ui | Component library |
+| Mapbox GL JS | Interactive maps, heatmaps, isochrones |
+| Recharts | Charts and data visualisation |
+| Framer Motion | Animations and transitions |
+
+### API Gateway
+| Technology | Purpose |
+|---|---|
+| Node.js | Runtime |
+| Fastify | HTTP framework |
+| tRPC | End-to-end typesafe APIs |
+| Zod | Schema validation |
+
+### AI Orchestration
+| Technology | Purpose |
+|---|---|
+| Python | Language |
+| LangGraph | Agent state machine / orchestration |
+| LangChain | LLM tooling and chains |
+| Mem0 | Episodic memory for cross-session recall |
+
+### Voice Pipeline
+| Technology | Purpose |
+|---|---|
+| LiveKit | WebRTC infrastructure |
+| Pipecat | Voice pipeline orchestration |
+| Deepgram Nova-3 | Speech-to-text (STT) |
+| Cartesia Sonic | Text-to-speech (TTS) |
+
+### Vector Search
+| Technology | Purpose |
+|---|---|
+| Qdrant | Vector database (hybrid dense + sparse) |
+| OpenAI text-embedding-3-large | Text embeddings |
+| CLIP ViT-L/14 | Image embeddings |
+
+### ML Services
+| Technology | Purpose |
+|---|---|
+| Python / FastAPI | ML service framework |
+| CLIP ViT-L/14 | Image feature extraction |
+| GPT-4V / Llama 3.2 Vision | Image understanding and captioning |
+
+### Database & Cache
+| Technology | Purpose |
+|---|---|
+| PostgreSQL (Supabase) | Primary relational database |
+| Prisma ORM | Database access and migrations |
+| Redis | Session cache, short-term memory |
+
+### Auth
+| Technology | Purpose |
+|---|---|
+| Supabase Auth | Authentication provider |
+| JWT | Token-based auth |
+
+### Infrastructure
+| Technology | Purpose |
+|---|---|
+| Docker | Containerisation |
+| Railway / Render | Cloud hosting |
+| Cloudflare CDN | Edge caching and DDoS protection |
+| GitHub Actions | CI/CD pipelines |
+| Turborepo + pnpm | Monorepo tooling |
+
+### Design Tokens
+| Token | Value |
+|---|---|
+| **Font — UI** | Inter |
+| **Font — Property Headings** | Playfair Display |
+| **Font — Data Values** | JetBrains Mono |
+| **Primary** | `#1B3A6B` (deep navy) |
+| **Accent** | `#2E86AB` (steel blue) |
+| **Gold** | `#F4A261` |
+| **Radius — Cards** | 12px |
+| **Radius — Inputs** | 8px |
+| **Radius — Badges** | 4px |
+| **Motion — UI** | 200ms ease-out |
+| **Motion — Maps** | 600ms ease-in-out |
+
+---
+
+## 4. Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                              CLIENTS                                     │
+│   Browser (Next.js 15 SSR)  ·  Mobile (PWA)  ·  Voice (LiveKit SDK)     │
+└──────────────┬──────────────────────┬──────────────────┬─────────────────┘
+               │ HTTPS/WSS            │ HTTPS/tRPC       │ WebRTC
+               ▼                      ▼                  ▼
+┌──────────────────────┐  ┌─────────────────────┐  ┌──────────────────────┐
+│   Next.js 15 App     │  │  Fastify API Gateway │  │  LiveKit Server      │
+│   (apps/web)         │  │  (apps/api)          │  │  (WebRTC SFU)        │
+│                      │  │                      │  │                      │
+│  • App Router (SSR)  │  │  • tRPC routes       │  │  • Room management   │
+│  • React Server Comp │  │  • Zod validation    │  │  • Media routing     │
+│  • Tailwind 4 / shad │  │  • Auth middleware   │  │  • Track pub/sub     │
+│  • Mapbox / Recharts │  │  • Rate limiting     │  │                      │
+│  • Framer Motion     │  │  • WebSocket proxy   │  │                      │
+└──────────┬───────────┘  └──────────┬──────────┘  └──────────┬───────────┘
+           │                         │                         │
+           │         ┌───────────────┴───────────────┐         │
+           │         ▼                               │         │
+           │  ┌─────────────────────────────┐        │         │
+           │  │  LangGraph AI Agent         │        │         │
+           │  │  (services/agent)           │        │         │
+           │  │                             │        │         │
+           │  │  • State machine orchestr.  │        │         │
+           │  │  • Tool dispatch            │        │         │
+           │  │  • Mem0 episodic memory     │        │         │
+           │  │  • Conversation management  │        │         │
+           │  │  • Multi-step planning      │        │         │
+           │  └──────┬──────────┬───────────┘        │         │
+           │         │          │                     │         │
+           │         ▼          ▼                     │         │
+           │  ┌────────────┐ ┌──────────────┐        │         │
+           │  │  Qdrant    │ │  ML Service  │        │         │
+           │  │  (Vector)  │ │  (svc/ml)    │        │         │
+           │  │            │ │              │        │         │
+           │  │ • Hybrid   │ │ • CLIP embed │        │         │
+           │  │   search   │ │ • GPT-4V     │        │         │
+           │  │ • Dense +  │ │ • Image      │        │         │
+           │  │   sparse   │ │   classify   │        │         │
+           │  └────────────┘ └──────────────┘        │         │
+           │                                         │         │
+           │         ┌───────────────────────┐       │         │
+           ▼         ▼                       ▼       ▼         ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                          DATA LAYER                                      │
+│                                                                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐  │
+│  │  PostgreSQL   │  │  Redis       │  │  Supabase    │  │ Cloudflare  │  │
+│  │  (Supabase)   │  │  Cache       │  │  Auth + RLS  │  │ CDN + R2    │  │
+│  │              │  │              │  │              │  │             │  │
+│  │ • Properties │  │ • Sessions   │  │ • JWT        │  │ • Static    │  │
+│  │ • Users      │  │ • Short-term │  │ • Row-level  │  │ • Images    │  │
+│  │ • History    │  │   memory     │  │   security   │  │ • Assets    │  │
+│  │ • Prisma ORM │  │ • Rate limit │  │ • OAuth      │  │             │  │
+│  └──────────────┘  └──────────────┘  └──────────────┘  └─────────────┘  │
+└──────────────────────────────────────────────────────────────────────────┘
+
+Voice Pipeline Detail:
+┌────────────┐    ┌────────────┐    ┌────────────┐    ┌────────────┐
+│  Browser   │───▶│  LiveKit   │───▶│  Pipecat   │───▶│  LangGraph │
+│  (WebRTC)  │◀───│  Server    │◀───│  Pipeline  │◀───│  Agent     │
+└────────────┘    └────────────┘    └────────────┘    └────────────┘
+                                     │          ▲
+                                     ▼          │
+                               ┌──────────┐ ┌──────────┐
+                               │ Deepgram │ │ Cartesia │
+                               │ STT      │ │ TTS      │
+                               │ (Nova-3) │ │ (Sonic)  │
+                               └──────────┘ └──────────┘
+```
+
+---
+
+## 5. Key Files Map
+
+```
+pavelo/
+├── PROJECT_BRIEF.md                  # ★ This file — single source of truth
+├── turbo.json                        # Turborepo pipeline config
+├── pnpm-workspace.yaml               # Workspace package definitions
+├── package.json                       # Root package.json
+├── .env.example                       # Environment variable template
+│
+├── apps/
+│   ├── web/                           # ── Next.js 15 Frontend ──
+│   │   ├── src/
+│   │   │   ├── app/                   # App Router pages & layouts
+│   │   │   │   ├── layout.tsx         # Root layout (fonts, providers)
+│   │   │   │   ├── page.tsx           # Landing / dashboard
+│   │   │   │   ├── onboarding/        # Buyer/seller role selection
+│   │   │   │   ├── voice/             # Voice session view
+│   │   │   │   ├── chat/              # Chat interface
+│   │   │   │   ├── property/[id]/     # Property detail page
+│   │   │   │   ├── saved/             # Saved properties board
+│   │   │   │   ├── market/            # Market intelligence hub
+│   │   │   │   └── agent-dashboard/   # B2B agent dashboard
+│   │   │   ├── components/
+│   │   │   │   ├── ui/               # shadcn/ui base components
+│   │   │   │   ├── property/         # PropertyCard, Gallery, FloorPlan
+│   │   │   │   ├── maps/            # MapView, Heatmap, Isochrone, CrimeMap
+│   │   │   │   ├── charts/          # PriceHistory, MarketTrend, Demographics
+│   │   │   │   ├── voice/           # Waveform, Transcription, VoiceControls
+│   │   │   │   └── chat/            # ChatBubble, VisualEmbed, ToolResult
+│   │   │   ├── hooks/               # Custom React hooks
+│   │   │   ├── lib/                  # Utilities, API client, constants
+│   │   │   └── styles/              # Global CSS, design tokens
+│   │   ├── public/                   # Static assets
+│   │   ├── next.config.ts
+│   │   ├── tailwind.config.ts
+│   │   └── tsconfig.json
+│   │
+│   └── api/                           # ── Fastify API Gateway ──
+│       ├── src/
+│       │   ├── index.ts              # Server entry point
+│       │   ├── router.ts            # tRPC router root
+│       │   ├── routes/
+│       │   │   ├── property.ts       # Property CRUD + search proxy
+│       │   │   ├── auth.ts           # Auth routes (Supabase)
+│       │   │   ├── voice.ts          # LiveKit token generation
+│       │   │   ├── agent.ts          # Agent session management
+│       │   │   └── market.ts         # Market data routes
+│       │   ├── middleware/
+│       │   │   ├── auth.ts           # JWT verification
+│       │   │   └── rateLimit.ts      # Rate limiting
+│       │   └── lib/
+│       │       ├── supabase.ts       # Supabase client
+│       │       ├── redis.ts          # Redis client
+│       │       └── prisma.ts         # Prisma client
+│       ├── prisma/
+│       │   └── schema.prisma         # Database schema
+│       └── tsconfig.json
+│
+├── services/
+│   ├── agent/                         # ── Python LangGraph AI Agent ──
+│   │   ├── src/
+│   │   │   ├── graph.py              # LangGraph state machine definition
+│   │   │   ├── nodes/
+│   │   │   │   ├── router.py         # Intent classification node
+│   │   │   │   ├── search.py         # Property search node
+│   │   │   │   ├── detail.py         # Property detail node
+│   │   │   │   ├── area.py           # Area intelligence node
+│   │   │   │   ├── voice.py          # Voice response formatting
+│   │   │   │   └── memory.py         # Memory read/write node
+│   │   │   ├── tools/
+│   │   │   │   ├── search_properties.py
+│   │   │   │   ├── get_property_details.py
+│   │   │   │   ├── analyse_property_images.py
+│   │   │   │   ├── get_area_stats.py
+│   │   │   │   ├── get_crime_data.py
+│   │   │   │   ├── get_school_ratings.py
+│   │   │   │   ├── get_transport_links.py
+│   │   │   │   ├── get_price_history.py
+│   │   │   │   ├── get_amenities.py
+│   │   │   │   ├── book_viewing.py
+│   │   │   │   ├── request_valuation.py
+│   │   │   │   ├── get_mortgage_estimate.py
+│   │   │   │   ├── compare_properties.py
+│   │   │   │   └── web_search.py
+│   │   │   ├── memory/
+│   │   │   │   ├── mem0_client.py    # Mem0 episodic memory
+│   │   │   │   ├── redis_cache.py    # Short-term session memory
+│   │   │   │   └── profile.py        # Long-term user profiles (PG)
+│   │   │   └── config.py
+│   │   ├── requirements.txt
+│   │   └── Dockerfile
+│   │
+│   └── ml/                            # ── Python FastAPI ML Service ──
+│       ├── src/
+│       │   ├── main.py               # FastAPI entry point
+│       │   ├── routes/
+│       │   │   ├── embed.py          # Embedding generation endpoints
+│       │   │   └── classify.py       # Image classification endpoints
+│       │   ├── models/
+│       │   │   ├── clip.py           # CLIP ViT-L/14 wrapper
+│       │   │   └── vision.py         # GPT-4V / Llama Vision wrapper
+│       │   └── pipelines/
+│       │       ├── property_embed.py  # Property → embedding pipeline
+│       │       └── image_intel.py     # Image → attributes pipeline
+│       ├── requirements.txt
+│       └── Dockerfile
+│
+├── packages/
+│   └── shared/                        # ── Shared TypeScript Types ──
+│       ├── src/
+│       │   ├── types/
+│       │   │   ├── property.ts       # Property, SearchResult, Filter
+│       │   │   ├── user.ts           # User, Preferences, Role
+│       │   │   ├── agent.ts          # AgentMessage, ToolCall, Session
+│       │   │   ├── map.ts            # MapPin, Heatmap, Isochrone
+│       │   │   └── market.ts         # MarketData, PriceHistory, Trend
+│       │   └── index.ts
+│       ├── package.json
+│       └── tsconfig.json
+│
+├── docs/
+│   ├── sprint-1/                     # Sprint plans, progress, done
+│   ├── brainstorm/                   # Brainstorm outputs
+│   └── qa/                           # QA sign-offs
+│
+├── docker-compose.yml                # Local dev orchestration
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                    # Lint, type-check, test on PR
+│       └── deploy.yml                # Deploy on merge to main
+└── .env.example                      # Environment variable template
+```
+
+---
+
+## 6. Team Roles
+
+| Agent | Name | Role | Scope |
+|-------|------|------|-------|
+| 🎬 Producer | **Remy** | Sprint plans, coordination, merging | NEVER writes application code |
+| 🖥️ Frontend | **Nova** | UI components, state, client logic | Next.js, React, TypeScript |
+| ⚙️ Backend | **Sage** | API, auth, database, AI services, security | Fastify, Python, LangGraph |
+| 🎨 Art/CSS | **Milo** | Visual design, animations, CSS, design system | Tailwind, Framer Motion, tokens |
+| 🧪 QA | **Ivy** | Testing, bug filing, sign-off | Playwright, pytest, Vitest |
+| 📐 Product | **Kira** | UX design, mechanics, feature specs | Figma, user flows, wireframes |
+| 🚀 DevOps | **Dash** | CI/CD, deployment, infrastructure | Docker, Railway, GitHub Actions |
+
+### Delegation Rules
+- **Nova** owns all files in `apps/web/`
+- **Sage** owns all files in `apps/api/`, `services/agent/`, `services/ml/`
+- **Milo** owns design tokens, global CSS, and component styling
+- **Ivy** owns all `*.test.*`, `*.spec.*`, and `docs/qa/` files
+- **Dash** owns `docker-compose.yml`, `Dockerfile`s, `.github/workflows/`, `turbo.json`
+- **Remy** owns `PROJECT_BRIEF.md`, `docs/sprint-*/`, coordination docs
+- **Kira** owns UX specs and user flow docs
+
+---
+
+## 7. Sprint Status
+
+| Sprint | Title | Weeks | Status |
+|--------|-------|-------|--------|
+| **1** | Infrastructure Foundations | 1–2 | 🔜 **Next** |
+| 2 | Auth, Property Schema & Core APIs | 3–4 | ⬜ Planned |
+| 3 | Image Intelligence ML Pipeline | 5–6 | ⬜ Planned |
+| 4 | Hybrid RAG Search Engine | 7–8 | ⬜ Planned |
+| 5 | Chat Interface & Text Agent | 9–10 | ⬜ Planned |
+| 6 | Voice Infrastructure | 11–12 | ⬜ Planned |
+| 7 | Visual Intelligence Components | 13–14 | ⬜ Planned |
+| 8 | Memory, Valuation & Seller Flow | 15–16 | ⬜ Planned |
+| 9 | Agent Dashboard, B2B & Integrations | 17–18 | ⬜ Planned |
+| 10 | Hardening, Performance & Launch Prep | 19–20 | ⬜ Planned |
+
+### Sprint 1 — Infrastructure Foundations (Scope)
+- [ ] Turborepo + pnpm workspace scaffold
+- [ ] Next.js 15 app scaffold (`apps/web`)
+- [ ] Fastify API gateway scaffold (`apps/api`)
+- [ ] Python LangGraph agent scaffold (`services/agent`)
+- [ ] Python FastAPI ML service scaffold (`services/ml`)
+- [ ] Shared types package (`packages/shared`)
+- [ ] Supabase project + auth setup
+- [ ] Prisma schema (initial models: User, Property)
+- [ ] Docker Compose for local dev
+- [ ] GitHub Actions CI pipeline (lint, type-check, test)
+- [ ] Design system foundation (Tailwind config, tokens, shadcn/ui)
+- [ ] Environment variable template (`.env.example`)
+- [ ] README with setup instructions
+
+---
+
+## 8. Current State
+
+| Component | Status | Notes |
+|---|---|---|
+| Monorepo scaffold | ❌ Not started | Turborepo + pnpm |
+| Next.js 15 app | ❌ Not started | `apps/web` |
+| Fastify API | ❌ Not started | `apps/api` |
+| LangGraph agent | ❌ Not started | `services/agent` |
+| ML service | ❌ Not started | `services/ml` |
+| Supabase Auth | ❌ Not started | |
+| Prisma schema | ❌ Not started | |
+| Docker Compose | ❌ Not started | |
+| CI/CD | ❌ Not started | GitHub Actions |
+| Design system | ❌ Not started | Tailwind + shadcn |
+| Qdrant | ❌ Not started | Sprint 4 |
+| LiveKit voice | ❌ Not started | Sprint 6 |
+
+> **Last updated:** Project kickoff — no code written yet.
+
+---
+
+## 9. Security Rules
+
+1. **Secrets in env vars only** — never commit secrets to code or git. Use `.env.local` for local dev, platform env vars in production.
+2. **Supabase Auth with JWT** — all auth flows go through Supabase. API gateway validates JWT on every request.
+3. **Row-level security (RLS)** — enabled on all Supabase tables for multi-tenancy isolation.
+4. **GDPR compliance** — explicit consent for voice recording, no persistent audio storage, data deletion API endpoint required.
+5. **OWASP top 10 audit** — full audit before launch (Sprint 10).
+6. **WebSocket auth** — all WebSocket/LiveKit connections require valid auth tokens.
+7. **API key rotation** — all third-party API keys must support rotation; no hard-coded keys.
+8. **Input validation** — Zod schemas on every API endpoint; never trust client input.
+9. **CORS** — strict origin allowlist in production.
+10. **Rate limiting** — per-user and per-IP rate limits on all public endpoints.
+
+---
+
+## 10. How to Run Locally
+
+```bash
+# 1. Clone the repo
+git clone git@github.com:yohannesHL/pavelo.git
+cd pavelo
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Set up environment variables
+cp .env.example .env.local
+# Fill in: SUPABASE_URL, SUPABASE_ANON_KEY, OPENAI_API_KEY, QDRANT_URL,
+#          LIVEKIT_URL, LIVEKIT_API_KEY, DEEPGRAM_API_KEY, CARTESIA_API_KEY,
+#          MAPBOX_TOKEN, REDIS_URL, DATABASE_URL
+
+# 4. Start infrastructure (Postgres, Redis, Qdrant)
+docker compose up -d
+
+# 5. Run database migrations
+pnpm --filter api prisma migrate dev
+
+# 6. Start all services in dev mode
+pnpm dev
+# This runs (via Turborepo):
+#   - apps/web        → http://localhost:3000
+#   - apps/api        → http://localhost:4000
+#   - services/agent  → http://localhost:8000
+#   - services/ml     → http://localhost:8001
+
+# Individual services:
+pnpm --filter web dev          # Frontend only
+pnpm --filter api dev          # API gateway only
+cd services/agent && uvicorn src.main:app --reload --port 8000
+cd services/ml && uvicorn src.main:app --reload --port 8001
+```
+
+---
+
+## 11. How to Deploy
+
+```bash
+# CI/CD runs automatically on push to main via GitHub Actions
+
+# Manual deploy (if needed):
+pnpm build                     # Build all packages
+
+# Frontend (Vercel / Railway)
+pnpm --filter web build        # Produces .next/ output
+# Deploy via platform CLI or git push
+
+# API Gateway (Railway / Render)
+pnpm --filter api build
+# Deploy via Dockerfile or platform CLI
+
+# Python Services (Railway / Render)
+# Each service has its own Dockerfile
+docker build -t pavelo-agent services/agent/
+docker build -t pavelo-ml services/ml/
+
+# Infrastructure:
+# - Supabase: managed (supabase.com)
+# - Qdrant: Qdrant Cloud or self-hosted
+# - Redis: Upstash or Railway addon
+# - LiveKit: LiveKit Cloud
+```
+
+### Environment Matrix
+
+| Service | Dev Port | Prod URL (example) |
+|---|---|---|
+| Web | :3000 | app.pavelo.ai |
+| API | :4000 | api.pavelo.ai |
+| Agent | :8000 | agent.pavelo.ai |
+| ML | :8001 | ml.pavelo.ai |
+
+---
+
+## 12. Cross-Chat Handoff Protocol
+
+When an agent finishes a task and another agent needs to pick it up:
+
+### Format
+```
+## HANDOFF → [Target Agent]
+
+**From:** [Source Agent]
+**Sprint:** [Sprint N]
+**Task:** [Brief description]
+
+### What was done
+- [Bullet list of completed work]
+
+### Files changed
+- `path/to/file.ts` — [what changed]
+
+### What's needed next
+- [Bullet list of remaining work for target agent]
+
+### Dependencies / blockers
+- [Any blockers or required context]
+```
+
+### Rules
+1. **Always reference file paths** — never say "the component" without the path.
+2. **Include the branch name** — all work happens on feature branches.
+3. **Tag the PR** — if a PR is open, include the PR number.
+4. **Remy coordinates** — all handoffs go through Remy for sprint tracking.
+5. **Update PROJECT_BRIEF.md** — Remy updates Current State after each handoff.
+
+---
+
+## 13. Bug & Fix Tracking
+
+### Bug Report Format
+```
+## 🐛 BUG-[NNN]: [Short title]
+
+**Severity:** Critical / High / Medium / Low
+**Reporter:** [Agent name]
+**Sprint:** [Sprint N]
+**Status:** Open / In Progress / Fixed / Won't Fix
+
+### Reproduction
+1. [Step 1]
+2. [Step 2]
+3. [Expected vs actual]
+
+### Environment
+- Browser / OS / Node / Python version
+- Relevant env vars or config
+
+### Files involved
+- `path/to/file.ts:L42` — [description]
+
+### Fix (when resolved)
+- **Fixed by:** [Agent name]
+- **PR:** #[number]
+- **Root cause:** [Brief explanation]
+```
+
+### Bug Log
+
+| ID | Title | Severity | Status | Reporter | Assignee |
+|----|-------|----------|--------|----------|----------|
+| — | No bugs yet | — | — | — | — |
+
+---
+
+## 14. Success Metrics (MVP)
+
+| Metric | Target | How Measured |
+|---|---|---|
+| Voice session latency (TTFB) | < 800ms | LiveKit + Pipecat instrumentation |
+| Qdrant hybrid search latency | < 100ms P95 | Qdrant metrics + API tracing |
+| STT Word Error Rate | < 8% | Deepgram dashboard + manual audit |
+| Agent response relevance | > 4.2 / 5 | User ratings + internal eval set |
+| Property search click-through | > 35% | Analytics (PostHog / Mixpanel) |
+| Voice session completion | > 70% | Session tracking (start vs. end) |
+| Cross-session memory recall | > 85% | Automated memory retrieval tests |
+| Image classification accuracy | > 88% top-1 | CLIP eval on labelled test set |
+
+---
+
+*Last updated by Remy (Producer) — project kickoff.*
