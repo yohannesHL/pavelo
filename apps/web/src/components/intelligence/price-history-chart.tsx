@@ -70,7 +70,7 @@ function AreaChart({
   width?: number;
   height?: number;
   color?: string;
-  onHover?: (point: { label: string; value: number; x: number; y: number } | null) => void;
+  onHover?: (point: { label: string; value: number; x: number; y: number; svgWidth: number; svgHeight: number } | null) => void;
 }) {
   if (data.length === 0) return null;
 
@@ -199,6 +199,8 @@ function AreaChart({
               value: d.value,
               x: toSvgX(d.x),
               y: toSvgY(d.y),
+              svgWidth: width,
+              svgHeight: height,
             })
           }
           onMouseLeave={() => onHover?.(null)}
@@ -224,6 +226,8 @@ export function PriceHistoryChart({
     value: number;
     x: number;
     y: number;
+    svgWidth: number;
+    svgHeight: number;
   } | null>(null);
 
   // Chart data from yearly averages
@@ -315,8 +319,8 @@ export function PriceHistoryChart({
           <div
             className="absolute z-20 pointer-events-none"
             style={{
-              left: `${(hoveredPoint.x / 600) * 100}%`,
-              top: `${(hoveredPoint.y / 250) * 100 - 15}%`,
+              left: `${(hoveredPoint.x / hoveredPoint.svgWidth) * 100}%`,
+              top: `${(hoveredPoint.y / hoveredPoint.svgHeight) * 100 - 15}%`,
               transform: "translate(-50%, -100%)",
             }}
           >
