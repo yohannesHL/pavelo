@@ -112,13 +112,17 @@ app.get("/api/v1/voice/metrics", async (request) => {
 import { prisma } from "./lib/prisma.js";
 
 app.post("/api/v1/memory/profile", async (request, reply) => {
-  const body = request.body as any;
-  if (!body?.userId) {
+  const body = request.body as Record<string, unknown>;
+  if (!body?.userId || typeof body.userId !== "string") {
     return reply.code(400).send({ error: "userId required" });
   }
 
   try {
-    const { userId, lastConsolidatedAt, ...data } = body;
+    const { userId, lastConsolidatedAt, ...data } = body as {
+      userId: string;
+      lastConsolidatedAt?: string;
+      [key: string]: unknown;
+    };
     const profile = await prisma.userProfile.upsert({
       where: { userId },
       create: {
@@ -138,8 +142,9 @@ app.post("/api/v1/memory/profile", async (request, reply) => {
       },
     });
     return reply.code(200).send(profile);
-  } catch (err: any) {
-    return reply.code(500).send({ error: err.message });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return reply.code(500).send({ error: message });
   }
 });
 
@@ -147,7 +152,7 @@ app.post("/api/v1/memory/profile", async (request, reply) => {
 // Called by the Python agent service
 
 app.get("/api/v1/viewings/slots", async (request, reply) => {
-  const { propertyId, date } = request.query as any;
+  const { propertyId, date } = request.query as { propertyId?: string; date?: string };
   if (!propertyId || !date) {
     return reply.code(400).send({ error: "propertyId and date required" });
   }
@@ -167,16 +172,17 @@ app.get("/api/v1/viewings/slots", async (request, reply) => {
       },
       select: { time: true },
     });
-    const bookedTimes = new Set(booked.map((b: any) => b.time));
+    const bookedTimes = new Set(booked.map((b) => b.time));
     const available = TIME_SLOTS.filter((t) => !bookedTimes.has(t));
     return { status: "success", propertyId, date, slots: available, bookedSlots: Array.from(bookedTimes) };
-  } catch (err: any) {
-    return reply.code(500).send({ error: err.message });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return reply.code(500).send({ error: message });
   }
 });
 
 app.post("/api/v1/viewings/book", async (request, reply) => {
-  const body = request.body as any;
+  const body = request.body as { propertyId?: string; date?: string; time?: string; userId?: string; notes?: string };
   if (!body?.propertyId || !body?.date || !body?.time) {
     return reply.code(400).send({ error: "propertyId, date, and time required" });
   }
@@ -192,8 +198,9 @@ app.post("/api/v1/viewings/book", async (request, reply) => {
       },
     });
     return { status: "success", booking };
-  } catch (err: any) {
-    return reply.code(500).send({ error: err.message });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return reply.code(500).send({ error: message });
   }
 });
 

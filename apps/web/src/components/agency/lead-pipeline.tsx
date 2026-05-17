@@ -46,6 +46,7 @@ export function LeadPipeline({ agencyId }: { agencyId: string }) {
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
   const [filterStatus, setFilterStatus] = useState<Lead["status"] | "all">("all");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [newLead, setNewLead] = useState({ name: "", email: "", phone: "", budget: "", notes: "" });
 
   const filtered = filterStatus === "all" ? leads : leads.filter((l) => l.status === filterStatus);
 
@@ -112,30 +113,60 @@ export function LeadPipeline({ agencyId }: { agencyId: string }) {
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <input
               placeholder="Name *"
+              value={newLead.name}
+              onChange={(e) => setNewLead((prev) => ({ ...prev, name: e.target.value }))}
               className="rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30"
             />
             <input
               placeholder="Email"
               type="email"
+              value={newLead.email}
+              onChange={(e) => setNewLead((prev) => ({ ...prev, email: e.target.value }))}
               className="rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30"
             />
             <input
               placeholder="Phone"
+              value={newLead.phone}
+              onChange={(e) => setNewLead((prev) => ({ ...prev, phone: e.target.value }))}
               className="rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30"
             />
             <input
               placeholder="Budget (£)"
               type="number"
+              value={newLead.budget}
+              onChange={(e) => setNewLead((prev) => ({ ...prev, budget: e.target.value }))}
               className="rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30"
             />
           </div>
           <textarea
             placeholder="Notes..."
             rows={2}
+            value={newLead.notes}
+            onChange={(e) => setNewLead((prev) => ({ ...prev, notes: e.target.value }))}
             className="mt-3 w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30"
           />
           <div className="mt-3 flex gap-2">
-            <button className="rounded-lg bg-[var(--color-accent)] px-4 py-2 text-xs font-semibold text-white">
+            <button
+              onClick={() => {
+                if (!newLead.name.trim()) return;
+                const lead: Lead = {
+                  id: String(Date.now()),
+                  name: newLead.name.trim(),
+                  email: newLead.email || null,
+                  phone: newLead.phone || null,
+                  status: "new",
+                  source: "manual",
+                  budget: newLead.budget ? parseInt(newLead.budget, 10) : null,
+                  propertyId: null,
+                  notes: newLead.notes || null,
+                  createdAt: new Date().toISOString(),
+                };
+                setLeads((prev) => [lead, ...prev]);
+                setNewLead({ name: "", email: "", phone: "", budget: "", notes: "" });
+                setShowAddForm(false);
+              }}
+              className="rounded-lg bg-[var(--color-accent)] px-4 py-2 text-xs font-semibold text-white"
+            >
               Save Lead
             </button>
             <button

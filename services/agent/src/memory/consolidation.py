@@ -215,27 +215,40 @@ def _extract_profile(
 
 
 def _extract_numbers(text: str) -> list[int]:
-    """Extract monetary numbers from text (handles £, k, commas)."""
+    """Extract monetary numbers from text (handles £, k, commas).
+    
+    Uses a single comprehensive regex to avoid duplicate matches
+    from overlapping patterns (Fixes #39).
+    """
     import re
     
     numbers = []
-    # Match patterns like £500,000 or £500k or 500000
+    seen_positions: set[int] = set()
+    
+    # Ordered patterns — most specific first to avoid duplicates
     patterns = [
-        r"£([\d,]+)k",       # £500k
-        r"£([\d,]+)",         # £500,000
-        r"([\d,]+)\s*k\b",    # 500k
-        r"\b(\d{6,})\b",      # 500000+
+        (r"£([\d,]+)\s*k\b", True),     # £500k → multiply by 1000
+        (r"([\d,]+)\s*k\b", True),        # 500k → multiply by 1000
+        (r"£([\d,]+)", False),             # £500,000
+        (r"\b(\d{6,})\b", False),          # 500000+
     ]
     
-    for pattern in patterns:
+    for pattern, is_k in patterns:
         for match in re.finditer(pattern, text, re.IGNORECASE):
+            # Skip if this position was already matched by a more specific pattern
+            if match.start() in seen_positions:
+                continue
+            
             num_str = match.group(1).replace(",", "")
             try:
                 num = int(num_str)
-                if "k" in pattern:
+                if is_k:
                     num *= 1000
                 if 10_000 <= num <= 100_000_000:  # reasonable property price range
                     numbers.append(num)
+                    # Mark all character positions as used
+                    for pos in range(match.start(), match.end()):
+                        seen_positions.add(pos)
             except ValueError:
                 pass
     
