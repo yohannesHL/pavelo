@@ -1,6 +1,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { Context } from "./context.js";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "./lib/prisma.js";
 import { router, publicProcedure, protectedProcedure } from "./router-helpers.js";
 import { conversationRouter } from "./routes/conversation.js";
@@ -91,6 +92,15 @@ const ListPropertyInput = z.object({
   sortOrder: SortOrderEnum.default("desc"),
 });
 
+// --- Types for ML service responses ---
+
+interface MLSearchResult {
+  id: string;
+  score: number;
+  dense_rank?: number;
+  sparse_rank?: number;
+}
+
 // --- Router ---
 
 export const appRouter = router({
@@ -130,7 +140,7 @@ export const appRouter = router({
         // Call ML service hybrid search
         const mlServiceUrl = process.env.ML_SERVICE_URL || "http://localhost:8001";
 
-        const searchBody: Record<string, any> = {
+        const searchBody: Record<string, unknown> = {
           query,
           top_k: topK + cursor + 1, // fetch enough for pagination
           exclude_ids: excludeIds,
@@ -166,16 +176,15 @@ export const appRouter = router({
             });
           }
 
-          const mlData = await mlResponse.json();
-          const searchResults = mlData.results || [];
+          const mlData = await mlResponse.json() as { results?: MLSearchResult[]; query?: string; filters_applied?: Record<string, unknown> };
+          const searchResults: MLSearchResult[] = mlData.results || [];
 
           // Extract property IDs for hydration
-          const propertyIds = searchResults.map((r: any) => r.id);
+          const propertyIds = searchResults.map((r) => r.id);
 
           // Hydrate from PostgreSQL
-          let properties: any[] = [];
           if (propertyIds.length > 0) {
-            properties = await prisma.property.findMany({
+            const properties = await prisma.property.findMany({
               where: {
                 id: { in: propertyIds },
                 deletedAt: null,
@@ -184,52 +193,61 @@ export const appRouter = router({
                 owner: { select: { id: true, name: true, email: true } },
               },
             });
+
+            // Create a lookup map
+            const propertyMap = new Map(properties.map((p) => [p.id, p]));
+
+            // Merge search scores with full property data, preserving search order
+            let items = searchResults
+              .map((result) => {
+                const property = propertyMap.get(result.id);
+                if (!property) return null;
+                return {
+                  ...property,
+                  searchScore: result.score,
+                  denseRank: result.dense_rank,
+                  sparseRank: result.sparse_rank,
+                };
+              })
+              .filter(<T,>(v: T | null): v is T => v !== null);
+
+            // Apply sort if not relevance (relevance = search score order)
+            if (sortBy === "price_asc") {
+              items.sort((a, b) => a.price - b.price);
+            } else if (sortBy === "price_desc") {
+              items.sort((a, b) => b.price - a.price);
+            } else if (sortBy === "newest") {
+              items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            } else if (sortBy === "bedrooms") {
+              items.sort((a, b) => b.bedrooms - a.bedrooms);
+            }
+
+            // Paginate
+            const paginatedItems = items.slice(cursor, cursor + topK);
+            const hasMore = items.length > cursor + topK;
+
+            return {
+              items: paginatedItems,
+              nextCursor: hasMore ? cursor + topK : null,
+              total: items.length,
+              query: mlData.query,
+              filtersApplied: mlData.filters_applied || {},
+            };
           }
 
-          // Create a lookup map
-          const propertyMap = new Map(properties.map((p) => [p.id, p]));
-
-          // Merge search scores with full property data, preserving search order
-          let items = searchResults
-            .map((result: any) => {
-              const property = propertyMap.get(result.id);
-              if (!property) return null;
-              return {
-                ...property,
-                searchScore: result.score,
-                denseRank: result.dense_rank,
-                sparseRank: result.sparse_rank,
-              };
-            })
-            .filter(Boolean);
-
-          // Apply sort if not relevance (relevance = search score order)
-          if (sortBy === "price_asc") {
-            items.sort((a: any, b: any) => a.price - b.price);
-          } else if (sortBy === "price_desc") {
-            items.sort((a: any, b: any) => b.price - a.price);
-          } else if (sortBy === "newest") {
-            items.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-          } else if (sortBy === "bedrooms") {
-            items.sort((a: any, b: any) => b.bedrooms - a.bedrooms);
-          }
-
-          // Paginate
-          const paginatedItems = items.slice(cursor, cursor + topK);
-          const hasMore = items.length > cursor + topK;
-
+          // No property IDs from ML service
           return {
-            items: paginatedItems,
-            nextCursor: hasMore ? cursor + topK : null,
-            total: items.length,
+            items: [],
+            nextCursor: null,
+            total: 0,
             query: mlData.query,
             filtersApplied: mlData.filters_applied || {},
           };
-        } catch (error: any) {
+        } catch (error: unknown) {
           if (error instanceof TRPCError) throw error;
 
           // Fallback to PostgreSQL text search if ML service is unavailable
-          const where: any = { deletedAt: null };
+          const where: Prisma.PropertyWhereInput = { deletedAt: null };
           if (query) {
             where.OR = [
               { title: { contains: query, mode: "insensitive" } },
@@ -238,10 +256,10 @@ export const appRouter = router({
               { postcode: { contains: query, mode: "insensitive" } },
             ];
           }
-          if (filters?.minPrice) where.price = { ...where.price, gte: filters.minPrice };
-          if (filters?.maxPrice) where.price = { ...where.price, lte: filters.maxPrice };
+          if (filters?.minPrice) where.price = { ...((where.price as Prisma.IntFilter) || {}), gte: filters.minPrice };
+          if (filters?.maxPrice) where.price = { ...((where.price as Prisma.IntFilter) || {}), lte: filters.maxPrice };
           if (filters?.propertyType) where.propertyType = filters.propertyType;
-          if (filters?.minBedrooms) where.bedrooms = { ...where.bedrooms, gte: filters.minBedrooms };
+          if (filters?.minBedrooms) where.bedrooms = { ...((where.bedrooms as Prisma.IntFilter) || {}), gte: filters.minBedrooms };
           if (filters?.city) where.city = { contains: filters.city, mode: "insensitive" };
 
           const items = await prisma.property.findMany({
@@ -285,7 +303,7 @@ export const appRouter = router({
         } = input;
 
         // Build where clause
-        const where: any = {
+        const where: Prisma.PropertyWhereInput = {
           deletedAt: null,
         };
 
@@ -440,7 +458,7 @@ export const appRouter = router({
         z.object({
           name: z.string().min(1).max(100).default("Untitled Search"),
           query: z.string().min(1),
-          filters: z.record(z.any()).default({}),
+          filters: z.record(z.unknown()).default({}),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -528,7 +546,7 @@ export const appRouter = router({
       .input(
         z.object({
           query: z.string(),
-          filters: z.record(z.any()).default({}),
+          filters: z.record(z.unknown()).default({}),
           resultCount: z.number().min(0).default(0),
           source: z.enum(["web", "agent", "api"]).default("web"),
           durationMs: z.number().optional(),
@@ -537,7 +555,7 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         await prisma.searchEvent.create({
           data: {
-            userId: (ctx as any).userId || null,
+            userId: ctx.userId || null,
             query: input.query,
             filters: input.filters,
             resultCount: input.resultCount,

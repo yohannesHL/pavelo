@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import multipart from "@fastify/multipart";
 import { randomUUID } from "crypto";
 import { prisma } from "../lib/prisma.js";
-import { authMiddleware } from "../middleware/auth.js";
+import { authMiddleware, type AuthenticatedRequest } from "../middleware/auth.js";
 
 /** Allowed image MIME types */
 const ALLOWED_TYPES = new Set([
@@ -41,7 +41,7 @@ export async function imageRoutes(app: FastifyInstance) {
       reply: FastifyReply
     ) => {
       const { propertyId } = request.params;
-      const userId = (request as any).userId as string;
+      const userId = (request as AuthenticatedRequest).userId;
 
       // Verify property exists and user owns it
       const property = await prisma.property.findFirst({

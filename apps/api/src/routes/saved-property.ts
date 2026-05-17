@@ -6,6 +6,7 @@
 
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import type { Prisma } from "@prisma/client";
 import { router, publicProcedure, protectedProcedure } from "../router-helpers.js";
 import { prisma } from "../lib/prisma.js";
 
@@ -54,7 +55,7 @@ export const savedPropertyRouter = router({
       }).optional()
     )
     .query(async ({ input, ctx }) => {
-      const where: any = { userId: ctx.userId };
+      const where: Prisma.SavedPropertyWhereInput = { userId: ctx.userId };
       if (input?.column) where.column = input.column;
 
       const saved = await prisma.savedProperty.findMany({

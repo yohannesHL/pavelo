@@ -5,8 +5,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2 } from "lucide-react";
 
+interface SearchResultProperty {
+  id: string;
+  title: string;
+  price: number;
+  propertyType: string;
+  bedrooms: number;
+  bathrooms: number;
+  city: string;
+  postcode: string;
+  images: string[];
+  searchScore?: number | null;
+  [key: string]: unknown;
+}
+
 interface SearchResultsGridProps {
-  properties: any[];
+  properties: SearchResultProperty[];
   totalCount: number;
   isLoading: boolean;
   hasMore: boolean;

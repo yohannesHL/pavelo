@@ -1,6 +1,13 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { createClient } from "@supabase/supabase-js";
 
+/** Extended request with auth fields attached by authMiddleware */
+export interface AuthenticatedRequest extends FastifyRequest {
+  userId: string;
+  userEmail: string | undefined;
+  userRole: string;
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
@@ -41,10 +48,11 @@ export async function authMiddleware(
       });
     }
 
-    // Attach user to request
-    (request as any).userId = data.user.id;
-    (request as any).userEmail = data.user.email;
-    (request as any).userRole = data.user.user_metadata?.role || "buyer";
+    // Attach user to request (typed via AuthenticatedRequest)
+    const authReq = request as AuthenticatedRequest;
+    authReq.userId = data.user.id;
+    authReq.userEmail = data.user.email;
+    authReq.userRole = data.user.user_metadata?.role || "buyer";
   } catch {
     return reply.status(401).send({
       error: "Unauthorized",

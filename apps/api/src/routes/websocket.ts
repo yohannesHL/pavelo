@@ -448,7 +448,7 @@ export async function websocketPlugin(app: FastifyInstance) {
               })
             );
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("WS message error:", error);
         ws.send(
           JSON.stringify({
@@ -488,5 +488,5 @@ export async function websocketPlugin(app: FastifyInstance) {
   });
 
   // Expose wss on the app for testing
-  (app as any).wss = wss;
+  (app as unknown as { wss: typeof wss }).wss = wss;
 }

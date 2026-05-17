@@ -250,7 +250,7 @@ const host = process.env.HOST || "0.0.0.0";
 try {
   await app.listen({ port, host });
   console.log(`🚀 API Gateway running at http://${host}:${port}`);
-} catch (err) {
+} catch (err: unknown) {
   app.log.error(err);
   process.exit(1);
 }

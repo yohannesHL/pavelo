@@ -77,7 +77,7 @@ export default function NotificationSettingsPage() {
       // Call tRPC push.subscribe with subscription details
 
       setIsSubscribed(true);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Push subscription failed:", err);
     } finally {
       setIsLoading(false);

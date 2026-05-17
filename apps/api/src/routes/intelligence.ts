@@ -8,7 +8,7 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../router-helpers.js";
 import { getCrimeData, getCrimeTrends } from "../services/external/police.js";
-import { getSchoolsByLocation } from "../services/external/ofsted.js";
+import { getSchoolsByLocation, type SchoolType, type OfstedRating } from "../services/external/ofsted.js";
 import {
   getSoldPrices,
   getPriceHistory,
@@ -106,8 +106,8 @@ export const intelligenceRouter = router({
         input.lat,
         input.lng,
         input.radiusKm,
-        input.type as any,
-        input.rating as any
+        input.type as SchoolType | "all",
+        input.rating as OfstedRating | "all"
       );
       return {
         ...result.data,
