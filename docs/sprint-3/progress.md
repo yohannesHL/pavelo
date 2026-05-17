@@ -30,4 +30,10 @@
 - Used gpt-4o instead of gpt-4-vision-preview (newer, better structured output support)
 - Job store is in-memory for MVP; production should use Redis/PostgreSQL
 - CLIP quantisation applied on CPU only (int8 dynamic quantisation)
-- Admin dashboard placeholder classification data shown when selecting jobs (will connect to real results once Celery is running)
+
+## QA Bug Fixes ✅
+- [x] #13 (minor): Removed redundant `zero_shot_classify()` call in scene classifier — was causing 2x inference cost
+- [x] #11 (minor): Added 3 missing feature tag rules (garden, basement, listed-building) to reach 20 documented tags
+- [x] #14 (major): Replaced deprecated `asyncio.get_event_loop()` with `asyncio.run()` in all Celery tasks — required for Python 3.12+
+- [x] #15 (major): Added Celery task definitions for `analyse_interior_task` and `analyse_condition_task`, wired into job submission route
+- [x] #12 (major): Replaced hardcoded mock data in admin ML dashboard with real job result extraction, added loading/error/empty states
