@@ -220,3 +220,62 @@ h1, h2, h3, h4, h5, h6 {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ─── Print Styles (S8-05 Valuation Report) ─── */
+@media print {
+  body {
+    font-size: 12px;
+    color: #000;
+    background: #fff;
+  }
+  
+  header, .print\\:hidden {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  .valuation-report {
+    max-width: 100%;
+    padding: 0;
+  }
+  
+  .valuation-report > div {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border-color: #ddd !important;
+  }
+  
+  /* Force gold color for estimate value */
+  .valuation-report .text-5xl {
+    color: #c17a2e !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Ensure gradient backgrounds print */
+  .bg-gradient-to-br {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ─── Kanban Board Styles (S8-09) ─── */
+.kanban-column {
+  min-height: 200px;
+}
+
+.kanban-card {
+  cursor: grab;
+}
+
+.kanban-card:active {
+  cursor: grabbing;
+}
+
+.kanban-card.dragging {
+  opacity: 0.5;
+  transform: rotate(2deg);
+}

@@ -398,8 +398,8 @@ pavelo/
 | **5** | Chat Interface & Text Agent | 9–10 | ✅ **Complete** |
 | 6 | Voice Infrastructure | 11–12 | ✅ **Complete** |
 | 7 | Visual Intelligence Components | 13–14 | ✅ **Complete** |
-| 8 | Memory, Valuation & Seller Flow | 15–16 | 🔜 **Next** |
-| 9 | Agent Dashboard, B2B & Integrations | 17–18 | ⬜ Planned |
+| **8** | Memory, Valuation & Seller Flow | 15–16 | ✅ **Complete** |
+| 9 | Agent Dashboard, B2B & Integrations | 17–18 | 🔜 **Next** |
 | 10 | Hardening, Performance & Launch Prep | 19–20 | ⬜ Planned |
 
 ### Sprint 1 — Infrastructure Foundations ✅
@@ -496,6 +496,18 @@ pavelo/
 - [x] Agent visual tools: get_area_stats, get_crime_data, get_school_ratings, get_transport_links
 - [x] VisualPayloadRenderer updated for all 8 new visual types
 
+### Sprint 8 — Memory, Valuation & Seller Flow ✅
+- [x] Cross-session memory consolidation: Mem0 extraction, categorization, deduplication, UserProfile model
+- [x] Memory visualization: MemoryProfileCard (overview + timeline), /settings/memory page
+- [x] Seller onboarding: 5-step wizard at /sell (address, details, photos, AI description, review)
+- [x] AI valuation agent tool: comparable search, price/sqft analysis, market trends, confidence scoring
+- [x] Valuation report: premium visual at /valuation/[id], print-ready, shareable
+- [x] Viewing booking tool: slot-based availability, tRPC + REST API, CRM webhook stub
+- [x] Mortgage calculator widget: interactive sliders, SDLT, affordability check, inline in chat
+- [x] Property comparison table: 2-4 properties side-by-side, best/worst highlighting, winner badge
+- [x] Saved properties board: Kanban at /saved (4 columns), comparison mode, tag management
+- [x] Push notification service: tRPC router, PushSubscription model, trigger functions, preferences page
+
 ---
 
 ## 8. Current State
@@ -544,8 +556,18 @@ pavelo/
 | Multi-language | ✅ Complete | 6 languages, auto-detect, i18n setup |
 | Voice persona | ✅ Complete | Voice-optimized prompts, affirmations |
 | Voice monitoring | ✅ Complete | TTFB, WER placeholder, session metadata |
+| Memory consolidation | ✅ Complete | Mem0 extraction, UserProfile model, dedup |
+| Memory visualization | ✅ Complete | MemoryProfileCard, /settings/memory |
+| Seller onboarding | ✅ Complete | 5-step wizard at /sell, AI description |
+| AI valuation | ✅ Complete | LangGraph tool, comparable search, confidence scoring |
+| Valuation report | ✅ Complete | Premium visual at /valuation/[id], print-ready |
+| Viewing bookings | ✅ Complete | Slot-based, tRPC + REST, CRM webhook stub |
+| Mortgage calculator | ✅ Complete | Interactive widget, SDLT, affordability check |
+| Property comparison | ✅ Complete | 2-4 side-by-side, best/worst highlighting |
+| Saved properties | ✅ Complete | Kanban board at /saved, 4 columns, comparison mode |
+| Push notifications | ✅ Complete | tRPC router, preferences, trigger functions |
 
-> **Last updated:** Sprint 7 complete — full visual intelligence layer with 6 external data API wrappers (Police UK, Ofsted, Land Registry, ONS, TravelTime, Google Places), 8 interactive visualization components (CrimeMap, SchoolMap, TransportIsochrone, AmenityMap, PriceHeatmap, AreaDashboard, PriceHistoryChart, MarketTrendDashboard), 3 standalone intelligence pages, and 4 LangGraph agent tools emitting visual payloads into chat.
+> **Last updated:** Sprint 8 complete — cross-session memory consolidation, seller onboarding wizard, AI valuation engine with comparable search, viewing booking system, mortgage calculator widget, property comparison table, Kanban-style saved properties board, and push notification service.
 
 ---
 

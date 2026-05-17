@@ -73,6 +73,18 @@ export default function RootLayout({
                     Dashboard
                   </a>
                   <a
+                    href="/sell"
+                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                  >
+                    Sell
+                  </a>
+                  <a
+                    href="/saved"
+                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                  >
+                    Saved
+                  </a>
+                  <a
                     href="/auth/login"
                     className="text-sm font-medium text-[var(--color-accent)] hover:underline"
                   >

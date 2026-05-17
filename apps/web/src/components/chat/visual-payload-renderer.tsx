@@ -12,6 +12,8 @@ import { motion } from "framer-motion";
 import { ChatPropertyCard } from "./chat-property-card";
 import { ChatPropertyCarousel } from "./chat-property-carousel";
 import { ChatComparisonTable } from "./chat-comparison-table";
+import { MortgageCalculator } from "./mortgage-calculator";
+import { PropertyComparisonTable } from "./property-comparison-table";
 import { CrimeMap } from "@/components/intelligence/crime-map";
 import { SchoolMap } from "@/components/intelligence/school-map";
 import { TransportIsochrone } from "@/components/intelligence/transport-isochrone";
@@ -76,7 +78,19 @@ function renderPayload(payload: VisualPayload) {
       );
 
     case "mortgage_estimate":
-      return <MortgageEstimateCard data={payload.data} />;
+      return <MortgageCalculator initialPrice={(payload.data as any)?.price || 450000} compact />;
+
+    case "mortgage_calculator":
+      return <MortgageCalculator initialPrice={(payload.data as any)?.price || 450000} compact />;
+
+    case "property_comparison":
+      return (
+        <PropertyComparisonTable
+          properties={(payload.data as any)?.properties || []}
+          title={payload.title}
+          compact
+        />
+      );
 
     case "map_view":
       return <MapPlaceholder data={payload.data} title={payload.title} />;

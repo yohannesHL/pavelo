@@ -6,6 +6,10 @@ import { router, publicProcedure, protectedProcedure } from "./router-helpers.js
 import { conversationRouter } from "./routes/conversation.js";
 import { voiceRouter } from "./routes/voice.js";
 import { intelligenceRouter } from "./routes/intelligence.js";
+import { memoryRouter } from "./routes/memory.js";
+import { viewingRouter } from "./routes/viewing.js";
+import { savedPropertyRouter } from "./routes/saved-property.js";
+import { pushRouter } from "./routes/push.js";
 
 // --- Zod Schemas ---
 
@@ -496,6 +500,18 @@ export const appRouter = router({
 
   /** Visual intelligence — external data services (S7-09) */
   intelligence: intelligenceRouter,
+
+  /** Memory profiles — consolidation and preferences (S8-01) */
+  memory: memoryRouter,
+
+  /** Viewing bookings — calendar, book, cancel (S8-06) */
+  viewing: viewingRouter,
+
+  /** Saved properties — board, notes, tags (S8-09) */
+  savedProperty: savedPropertyRouter,
+
+  /** Push notifications — subscribe, preferences (S8-10) */
+  push: pushRouter,
 
   /** Search analytics (S4-09) */
   searchAnalytics: router({

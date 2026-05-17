@@ -28,7 +28,7 @@ from src.nodes.tool_executor import tool_executor_node
 def route_by_intent(state: AgentState) -> str:
     """Route to the appropriate node based on classified intent."""
     search_intents = {"property_search"}
-    tool_intents = {"comparison", "property_detail", "valuation_request"}
+    tool_intents = {"comparison", "property_detail", "valuation_request", "booking_request"}
 
     if state.intent in search_intents:
         return "property_search"
