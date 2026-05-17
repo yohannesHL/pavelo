@@ -8,9 +8,6 @@ export interface AuthenticatedRequest extends FastifyRequest {
   userRole: string;
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-
 /**
  * JWT validation middleware
  * Verifies Supabase JWT token from Authorization header
@@ -38,6 +35,8 @@ export async function authMiddleware(
   }
 
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { data, error } = await supabase.auth.getUser(token);
 

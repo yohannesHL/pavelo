@@ -7,6 +7,7 @@ import {
   type FastifyTRPCPluginOptions,
 } from "@trpc/server/adapters/fastify";
 import { config } from "dotenv";
+import path from "path";
 import { appRouter, type AppRouter } from "./router.js";
 import { createContext } from "./context.js";
 import { imageRoutes } from "./routes/upload.js";
@@ -15,7 +16,9 @@ import { registerTraceMiddleware } from "./middleware/trace.js";
 import { getSearchCacheMetrics } from "./lib/search-cache.js";
 import { prisma } from "./lib/prisma.js";
 
-config();
+// Load .env — try API package root first, then monorepo root as fallback
+config({ path: path.resolve(process.cwd(), ".env") });
+config({ path: path.resolve(process.cwd(), "apps/api/.env") });
 
 const app = Fastify({
   logger: true,
