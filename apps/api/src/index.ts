@@ -49,17 +49,56 @@ await app.register(rateLimit, {
   timeWindow: "1 minute",
 });
 
-// Auth-specific rate limiting (stricter)
+// --- Auth-specific rate limiting (strict: 5 req/min per IP) ---
+const AUTH_RATE_LIMIT = { max: 5, windowMs: 60_000 };
+const authAttempts = new Map<string, { count: number; resetAt: number }>();
+
+// Clean up expired entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of authAttempts) {
+    if (now > entry.resetAt) authAttempts.delete(key);
+  }
+}, 300_000);
+
 app.addHook("onRequest", async (request, reply) => {
   const path = request.url;
-  if (
-    path.includes("/auth") ||
+  const isAuthRoute =
+    path.includes("/trpc/auth.") ||
+    path.includes("/api/auth/") ||
     path.includes("signUp") ||
-    path.includes("signIn")
-  ) {
-    // Additional rate limit header for auth routes
-    reply.header("X-RateLimit-Auth", "10/min");
+    path.includes("signIn") ||
+    path.includes("password-reset");
+
+  if (!isAuthRoute) return;
+
+  const ip = request.ip || request.headers["x-forwarded-for"] || "unknown";
+  const key = typeof ip === "string" ? ip : String(ip);
+  const now = Date.now();
+  const entry = authAttempts.get(key);
+
+  if (!entry || now > entry.resetAt) {
+    authAttempts.set(key, { count: 1, resetAt: now + AUTH_RATE_LIMIT.windowMs });
+    reply.header("X-RateLimit-Limit", String(AUTH_RATE_LIMIT.max));
+    reply.header("X-RateLimit-Remaining", String(AUTH_RATE_LIMIT.max - 1));
+    return;
   }
+
+  entry.count++;
+
+  if (entry.count > AUTH_RATE_LIMIT.max) {
+    const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
+    reply.header("Retry-After", String(retryAfter));
+    reply.header("X-RateLimit-Limit", String(AUTH_RATE_LIMIT.max));
+    reply.header("X-RateLimit-Remaining", "0");
+    return reply.code(429).send({
+      error: "Too Many Requests",
+      message: `Auth rate limit exceeded. Try again in ${retryAfter}s.`,
+    });
+  }
+
+  reply.header("X-RateLimit-Limit", String(AUTH_RATE_LIMIT.max));
+  reply.header("X-RateLimit-Remaining", String(AUTH_RATE_LIMIT.max - entry.count));
 });
 
 // --- Observability (S10-08) ---
