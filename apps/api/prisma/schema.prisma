@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// User account — maps to Supabase Auth user
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  name      String
+  role      UserRole @default(buyer)
+  avatarUrl String?  @map("avatar_url")
+
+  // Relations
+  properties Property[]
+
+  // Timestamps
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("users")
+}
+
+/// Property listing
+model Property {
+  id           String         @id @default(uuid()) @db.Uuid
+  title        String
+  description  String?
+  price        Int
+  propertyType PropertyType   @map("property_type")
+  status       PropertyStatus @default(for_sale)
+  bedrooms     Int
+  bathrooms    Int
+  squareFeet   Int?           @map("square_feet")
+
+  // Address
+  addressLine1 String  @map("address_line1")
+  addressLine2 String? @map("address_line2")
+  city         String
+  postcode     String
+  county       String?
+
+  // Coordinates
+  latitude  Float?
+  longitude Float?
+
+  // Media & features
+  images   String[] @default([])
+  features String[] @default([])
+
+  // Relations
+  owner   User   @relation(fields: [ownerId], references: [id])
+  ownerId String @map("owner_id") @db.Uuid
+
+  // Timestamps
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([postcode])
+  @@index([city])
+  @@index([propertyType])
+  @@index([status])
+  @@index([price])
+  @@index([ownerId])
+  @@map("properties")
+}
+
+// === Enums ===
+
+enum UserRole {
+  buyer
+  seller
+  agent
+
+  @@map("user_role")
+}
+
+enum PropertyType {
+  detached
+  semi_detached @map("semi-detached")
+  terraced
+  flat
+  bungalow
+  cottage
+  mansion
+  other
+
+  @@map("property_type")
+}
+
+enum PropertyStatus {
+  for_sale
+  under_offer
+  sold_stc
+  sold
+  withdrawn
+
+  @@map("property_status")
+}
