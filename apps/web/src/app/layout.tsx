@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { AuthProvider } from "@/components/auth/auth-provider";
@@ -23,18 +23,19 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#1B3A6B",
+};
+
 export const metadata: Metadata = {
   title: "Pavelo — AI Estate Agent",
   description:
     "Your AI estate agent that listens, remembers, and delivers. Voice-first property search powered by Xara.",
   manifest: "/manifest.json",
-  themeColor: "#1B3A6B",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-    viewportFit: "cover",
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

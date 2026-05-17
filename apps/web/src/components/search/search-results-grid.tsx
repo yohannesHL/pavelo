@@ -10,11 +10,17 @@ interface SearchResultProperty {
   title: string;
   price: number;
   propertyType: string;
+  status: string;
   bedrooms: number;
   bathrooms: number;
+  squareFeet?: number | null;
+  addressLine1: string;
   city: string;
   postcode: string;
   images: string[];
+  features: string[];
+  latitude?: number | null;
+  longitude?: number | null;
   searchScore?: number | null;
   [key: string]: unknown;
 }

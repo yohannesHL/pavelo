@@ -122,9 +122,9 @@ export function PropertyGrid({ filters }: PropertyGridProps) {
 
   // Sort
   items.sort((a, b) => {
-    const key = filters.sortBy as keyof typeof a;
-    const aVal = key === "createdAt" ? 0 : (a[key] as number) ?? 0;
-    const bVal = key === "createdAt" ? 0 : (b[key] as number) ?? 0;
+    const key = filters.sortBy;
+    const aVal = key === "createdAt" ? 0 : ((a as Record<string, unknown>)[key] as number) ?? 0;
+    const bVal = key === "createdAt" ? 0 : ((b as Record<string, unknown>)[key] as number) ?? 0;
     return filters.sortOrder === "asc" ? aVal - bVal : bVal - aVal;
   });
 
