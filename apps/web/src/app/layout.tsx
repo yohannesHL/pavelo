@@ -85,6 +85,12 @@ export default function RootLayout({
                     Saved
                   </a>
                   <a
+                    href="/agency"
+                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                  >
+                    Agency
+                  </a>
+                  <a
                     href="/auth/login"
                     className="text-sm font-medium text-[var(--color-accent)] hover:underline"
                   >

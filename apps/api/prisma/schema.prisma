@@ -421,3 +421,274 @@ model ValuationReport {
   @@index([shareToken])
   @@map("valuation_reports")
 }
+
+// ═══════════════════════════════════════════════════════════
+// Sprint 9 — Agency, B2B & Integrations
+// ═══════════════════════════════════════════════════════════
+
+/// Agency — multi-tenant B2B organisation (S9-06)
+model Agency {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  slug         String   @unique
+  plan         AgencyPlan @default(starter)
+  billingEmail String   @map("billing_email")
+  
+  // Usage counters
+  conversationCount Int  @default(0) @map("conversation_count")
+  voiceMinutes      Int  @default(0) @map("voice_minutes")
+  propertyCount     Int  @default(0) @map("property_count")
+  
+  // Relations
+  members       AgencyMember[]
+  config        AgencyConfig?
+  webhooks      WebhookConfig[]
+  leads         Lead[]
+  handovers     Handover[]
+  subscription  Subscription?
+  
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([slug])
+  @@index([plan])
+  @@map("agencies")
+}
+
+/// Agency plan tiers (S9-07)
+enum AgencyPlan {
+  starter
+  growth
+  enterprise
+
+  @@map("agency_plan")
+}
+
+/// AgencyMember — links users to agencies with roles (S9-01)
+model AgencyMember {
+  id        String          @id @default(uuid()) @db.Uuid
+  agencyId  String          @map("agency_id") @db.Uuid
+  agency    Agency          @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  userId    String          @map("user_id") @db.Uuid
+  role      AgencyMemberRole @default(agent)
+  name      String
+  email     String
+  
+  invitedAt  DateTime?      @map("invited_at")
+  joinedAt   DateTime?      @map("joined_at")
+  
+  createdAt  DateTime       @default(now()) @map("created_at")
+  updatedAt  DateTime       @updatedAt @map("updated_at")
+
+  @@unique([agencyId, userId])
+  @@index([agencyId])
+  @@index([userId])
+  @@map("agency_members")
+}
+
+/// Agency member roles
+enum AgencyMemberRole {
+  admin
+  agent
+  viewer
+
+  @@map("agency_member_role")
+}
+
+/// AgencyConfig — white-label branding (S9-05)
+model AgencyConfig {
+  id            String  @id @default(uuid()) @db.Uuid
+  agencyId      String  @unique @map("agency_id") @db.Uuid
+  agency        Agency  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  
+  // Branding
+  logo          String?
+  primaryColor  String  @default("#1B3A6B") @map("primary_color")
+  accentColor   String  @default("#2E86AB") @map("accent_color")
+  personaName   String  @default("Xara") @map("persona_name")
+  customDomain  String? @map("custom_domain")
+  
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([agencyId])
+  @@map("agency_configs")
+}
+
+/// Lead — buyer inquiry tracking (S9-01)
+model Lead {
+  id          String     @id @default(uuid()) @db.Uuid
+  agencyId    String     @map("agency_id") @db.Uuid
+  agency      Agency     @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  
+  // Contact info
+  name        String
+  email       String?
+  phone       String?
+  
+  // Lead details
+  status      LeadStatus @default(new)
+  source      String     @default("xara") // xara, website, referral, manual
+  propertyId  String?    @map("property_id") @db.Uuid
+  notes       String?    @db.Text
+  budget      Int?
+  
+  // Conversation reference
+  conversationId String? @map("conversation_id") @db.Uuid
+  
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@index([agencyId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("leads")
+}
+
+/// Lead status pipeline
+enum LeadStatus {
+  new
+  contacted
+  qualified
+  converted
+  lost
+
+  @@map("lead_status")
+}
+
+/// Handover — human agent handover requests (S9-03)
+model Handover {
+  id              String          @id @default(uuid()) @db.Uuid
+  agencyId        String          @map("agency_id") @db.Uuid
+  agency          Agency          @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  conversationId  String          @map("conversation_id") @db.Uuid
+  userId          String          @map("user_id") @db.Uuid
+  
+  // Handover details
+  status          HandoverStatus  @default(pending)
+  reason          String          // "user_requested", "low_confidence", "booking_confirmation"
+  contextSummary  String?         @db.Text @map("context_summary")
+  userPreferences Json            @default("{}") @map("user_preferences")
+  propertiesDiscussed String[]    @default([]) @map("properties_discussed")
+  
+  // Assignment
+  assignedTo      String?         @map("assigned_to") @db.Uuid
+  acceptedAt      DateTime?       @map("accepted_at")
+  completedAt     DateTime?       @map("completed_at")
+  
+  // LiveKit room for warm transfer
+  roomName        String?         @map("room_name")
+  
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  @@index([agencyId])
+  @@index([status])
+  @@index([conversationId])
+  @@map("handovers")
+}
+
+/// Handover status
+enum HandoverStatus {
+  pending
+  accepted
+  in_progress
+  completed
+
+  @@map("handover_status")
+}
+
+/// WebhookConfig — CRM webhook subscriptions (S9-04)
+model WebhookConfig {
+  id        String   @id @default(uuid()) @db.Uuid
+  agencyId  String   @map("agency_id") @db.Uuid
+  agency    Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  
+  url       String
+  secret    String
+  events    String[] @default([]) // ["lead.created", "viewing.booked", "valuation.requested", "handover.requested"]
+  active    Boolean  @default(true)
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([agencyId])
+  @@index([active])
+  @@map("webhook_configs")
+}
+
+/// WebhookDelivery — delivery log (S9-04)
+model WebhookDelivery {
+  id           String   @id @default(uuid()) @db.Uuid
+  webhookId    String   @map("webhook_id") @db.Uuid
+  event        String
+  payload      Json
+  
+  // Delivery status
+  statusCode   Int?     @map("status_code")
+  response     String?  @db.Text
+  success      Boolean  @default(false)
+  attempts     Int      @default(0)
+  lastAttempt  DateTime? @map("last_attempt")
+  
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([webhookId])
+  @@index([event])
+  @@index([createdAt])
+  @@map("webhook_deliveries")
+}
+
+/// Subscription — Stripe billing (S9-07)
+model Subscription {
+  id                String             @id @default(uuid()) @db.Uuid
+  agencyId          String             @unique @map("agency_id") @db.Uuid
+  agency            Agency             @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  
+  stripeCustomerId  String             @map("stripe_customer_id")
+  stripePriceId     String             @map("stripe_price_id")
+  stripeSubscriptionId String?         @map("stripe_subscription_id")
+  status            SubscriptionStatus @default(active)
+  
+  currentPeriodStart DateTime?         @map("current_period_start")
+  currentPeriodEnd   DateTime?         @map("current_period_end")
+  cancelledAt        DateTime?         @map("cancelled_at")
+  
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+
+  @@index([agencyId])
+  @@index([stripeCustomerId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+/// Subscription status
+enum SubscriptionStatus {
+  active
+  past_due
+  cancelled
+  trialing
+
+  @@map("subscription_status")
+}
+
+/// Feedback — user feedback on agent responses (S9-08)
+model Feedback {
+  id          String   @id @default(uuid()) @db.Uuid
+  messageId   String   @map("message_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  
+  rating      Int      // 1 = thumbs down, 5 = thumbs up
+  correction  String?  @db.Text // "That's not right" → correction text
+  comment     String?  @db.Text
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+  @@index([rating])
+  @@index([createdAt])
+  @@map("feedbacks")
+}

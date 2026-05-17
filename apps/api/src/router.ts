@@ -10,6 +10,7 @@ import { memoryRouter } from "./routes/memory.js";
 import { viewingRouter } from "./routes/viewing.js";
 import { savedPropertyRouter } from "./routes/saved-property.js";
 import { pushRouter } from "./routes/push.js";
+import { agencyRouter } from "./routes/agency.js";
 
 // --- Zod Schemas ---
 
@@ -512,6 +513,9 @@ export const appRouter = router({
 
   /** Push notifications — subscribe, preferences (S8-10) */
   push: pushRouter,
+
+  /** Agency management, leads, analytics, webhooks, white-label (S9) */
+  agency: agencyRouter,
 
   /** Search analytics (S4-09) */
   searchAnalytics: router({
