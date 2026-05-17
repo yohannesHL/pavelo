@@ -396,8 +396,8 @@ pavelo/
 | **3** | Image Intelligence ML Pipeline | 5–6 | ✅ **Complete** |
 | **4** | Hybrid RAG Search Engine | 7–8 | ✅ **Complete** |
 | **5** | Chat Interface & Text Agent | 9–10 | ✅ **Complete** |
-| 6 | Voice Infrastructure | 11–12 | 🔜 **Next** |
-| 7 | Visual Intelligence Components | 13–14 | ⬜ Planned |
+| 6 | Voice Infrastructure | 11–12 | ✅ **Complete** |
+| 7 | Visual Intelligence Components | 13–14 | 🔜 **Next** |
 | 8 | Memory, Valuation & Seller Flow | 15–16 | ⬜ Planned |
 | 9 | Agent Dashboard, B2B & Integrations | 17–18 | ⬜ Planned |
 | 10 | Hardening, Performance & Launch Prep | 19–20 | ⬜ Planned |
@@ -468,6 +468,18 @@ pavelo/
 - [x] Conversation list/history: sidebar, search, delete, resume, new chat
 - [x] Agent persona system: configurable name/tone/formality, system prompt template
 
+### Sprint 6 — Voice Infrastructure ✅
+- [x] LiveKit server setup: docker-compose, token generation, room management
+- [x] LiveKit React SDK: useVoiceSession hook, audio tracks, connection state
+- [x] Pipecat pipeline: VAD → Deepgram STT → LangGraph Agent → Cartesia TTS
+- [x] Silero VAD: configurable thresholds, barge-in handling
+- [x] Voice session UI: waveform, transcription, controls, Xara avatar
+- [x] Voice-to-chat transcript: unified timeline with source tagging
+- [x] Voice session management: Prisma model, session limits, state tracking
+- [x] Multi-language support: 6 languages, auto-detect, multilingual TTS
+- [x] Voice persona: voice-optimized prompt, affirmations, handover phrases
+- [x] Voice quality monitoring: TTFB, WER placeholder, session metrics
+
 ---
 
 ## 8. Current State
@@ -508,9 +520,15 @@ pavelo/
 | Streaming relay | ✅ Complete | Python SSE → Node WS → React UI |
 | Visual payloads | ✅ Complete | property_card, carousel, comparison_table, mortgage |
 | Agent persona | ✅ Complete | Configurable name/tone/formality, Xara default |
-| LiveKit voice | ❌ Not started | Sprint 6 |
+| LiveKit voice | ✅ Complete | Room management, token gen, React SDK |
+| Voice pipeline | ✅ Complete | Pipecat: VAD + Deepgram STT + Cartesia TTS |
+| Voice UI | ✅ Complete | Waveform, avatar, controls, transcription |
+| Voice sessions | ✅ Complete | Prisma model, 1-per-user limit, metrics |
+| Multi-language | ✅ Complete | 6 languages, auto-detect, i18n setup |
+| Voice persona | ✅ Complete | Voice-optimized prompts, affirmations |
+| Voice monitoring | ✅ Complete | TTFB, WER placeholder, session metadata |
 
-> **Last updated:** Sprint 5 complete — full chat interface with WebSocket infrastructure, LangGraph agent with OpenAI integration, Mem0 memory, property search tools, streaming responses, visual payloads, and configurable persona system.
+> **Last updated:** Sprint 6 complete — full voice infrastructure with LiveKit WebRTC, Pipecat pipeline (VAD + Deepgram STT + Cartesia TTS), voice session management, animated voice UI, multi-language support, voice persona, and quality monitoring.
 
 ---
 
