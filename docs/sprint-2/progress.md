@@ -22,10 +22,10 @@
 - [x] Image upload endpoint
 - [x] Property detail page
 
-## Phase 4: AI Agent Skeleton (S2-06, S2-07)
-- [ ] LangGraph StateGraph definition
-- [ ] Node stubs
-- [ ] Mem0 integration prep
+## Phase 4: AI Agent Skeleton (S2-06, S2-07) ✅
+- [x] LangGraph StateGraph definition
+- [x] Node stubs
+- [x] Mem0 integration prep
 
 ## Phase 5: Embedding Pipeline Prep (S2-08, S2-09)
 - [ ] Property embedding pipeline
