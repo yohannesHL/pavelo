@@ -1,16 +1,25 @@
 "use client";
 
 /**
- * VisualPayloadRenderer — dispatch visual payloads to React components (S5-07)
+ * VisualPayloadRenderer — dispatch visual payloads to React components (S5-07, S7)
  *
  * Receives JSON visual directives from the agent and renders
- * the correct component: property cards, carousels, charts, tables, etc.
+ * the correct component: property cards, carousels, charts, tables,
+ * maps (crime, school, transport, amenity), and data visuals.
  */
 
 import { motion } from "framer-motion";
 import { ChatPropertyCard } from "./chat-property-card";
 import { ChatPropertyCarousel } from "./chat-property-carousel";
 import { ChatComparisonTable } from "./chat-comparison-table";
+import { CrimeMap } from "@/components/intelligence/crime-map";
+import { SchoolMap } from "@/components/intelligence/school-map";
+import { TransportIsochrone } from "@/components/intelligence/transport-isochrone";
+import { AmenityMap } from "@/components/intelligence/amenity-map";
+import { PriceHeatmap } from "@/components/intelligence/price-heatmap";
+import { AreaDashboard } from "@/components/intelligence/area-dashboard";
+import { PriceHistoryChart } from "@/components/intelligence/price-history-chart";
+import { MarketTrendDashboard } from "@/components/intelligence/market-trend-dashboard";
 import type { VisualPayload } from "@/stores/chat-store";
 
 interface VisualPayloadRendererProps {
@@ -72,8 +81,94 @@ function renderPayload(payload: VisualPayload) {
     case "map_view":
       return <MapPlaceholder data={payload.data} title={payload.title} />;
 
+    case "crime_map":
+      return (
+        <CrimeMap
+          crimes={(payload.data as any)?.crimes || []}
+          categories={(payload.data as any)?.categories || []}
+          center={(payload.data as any)?.center || { lat: 51.5074, lng: -0.1278 }}
+          dateRange={(payload.data as any)?.dateRange || { from: "", to: "" }}
+          total={(payload.data as any)?.total || 0}
+          compact
+        />
+      );
+
+    case "school_map":
+      return (
+        <SchoolMap
+          schools={(payload.data as any)?.schools || []}
+          center={(payload.data as any)?.center || { lat: 51.5074, lng: -0.1278 }}
+          radius={(payload.data as any)?.radius || 3}
+          compact
+        />
+      );
+
+    case "transport_isochrone":
+      return (
+        <TransportIsochrone
+          isochrones={(payload.data as any)?.isochrones || []}
+          origin={(payload.data as any)?.origin || { lat: 51.5074, lng: -0.1278 }}
+          destination={(payload.data as any)?.destination}
+          modes={(payload.data as any)?.modes || ["public_transport"]}
+          compact
+        />
+      );
+
+    case "amenity_map":
+      return (
+        <AmenityMap
+          categories={(payload.data as any)?.categories || []}
+          center={(payload.data as any)?.center || { lat: 51.5074, lng: -0.1278 }}
+          radius={(payload.data as any)?.radius || 1}
+          totalCount={(payload.data as any)?.totalCount || 0}
+          compact
+        />
+      );
+
     case "price_chart":
-      return <ChartPlaceholder data={payload.data} title={payload.title} />;
+    case "price_history_chart":
+      return (
+        <PriceHistoryChart
+          history={(payload.data as any)?.history || []}
+          averagePrices={(payload.data as any)?.averagePrices || []}
+          postcode={(payload.data as any)?.postcode || ""}
+          yoyChange={(payload.data as any)?.yoyChange ?? null}
+          compact
+        />
+      );
+
+    case "price_heatmap":
+      return (
+        <PriceHeatmap
+          sales={(payload.data as any)?.sales || []}
+          center={(payload.data as any)?.center || { lat: 51.5074, lng: -0.1278 }}
+          averagePrice={(payload.data as any)?.averagePrice || 0}
+          medianPrice={(payload.data as any)?.medianPrice || 0}
+          priceRange={(payload.data as any)?.priceRange || { min: 0, max: 0 }}
+          postcode={(payload.data as any)?.postcode || ""}
+          compact
+        />
+      );
+
+    case "market_trend_chart":
+      return (
+        <MarketTrendDashboard
+          indices={(payload.data as any)?.indices || []}
+          forecast={(payload.data as any)?.forecast}
+          compact
+        />
+      );
+
+    case "area_dashboard":
+    case "area_stats":
+      return (
+        <AreaDashboard
+          demographics={(payload.data as any)?.demographics || {}}
+          scores={(payload.data as any)?.scores || {}}
+          postcode={(payload.data as any)?.postcode || ""}
+          compact
+        />
+      );
 
     default:
       return (
@@ -158,18 +253,21 @@ function MapPlaceholder({
 function ChartPlaceholder({
   data,
   title,
+  type,
 }: {
   data: Record<string, unknown>;
   title?: string;
+  type?: string;
 }) {
+  const icon = type?.includes("price") ? "📈" : type?.includes("area") ? "📊" : "📊";
   return (
     <div className="flex h-40 items-center justify-center rounded-xl border border-[var(--border)] bg-gradient-to-br from-[var(--color-gold)]/5 to-[var(--color-accent)]/5">
       <div className="text-center">
         <p className="text-sm font-medium text-[var(--muted-foreground)]">
-          📊 {title || "Price Chart"}
+          {icon} {title || type || "Chart"}
         </p>
         <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-          Chart rendering available in Sprint 7
+          Data visualization loading...
         </p>
       </div>
     </div>

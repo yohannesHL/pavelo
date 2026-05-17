@@ -16,6 +16,15 @@ export const VisualPayloadType = z.enum([
   "area_stats",
   "image_gallery",
   "mortgage_estimate",
+  // Sprint 7 — Visual Intelligence
+  "crime_map",
+  "school_map",
+  "transport_isochrone",
+  "amenity_map",
+  "price_heatmap",
+  "area_dashboard",
+  "price_history_chart",
+  "market_trend_chart",
 ]);
 export type VisualPayloadType = z.infer<typeof VisualPayloadType>;
 
