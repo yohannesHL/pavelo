@@ -121,13 +121,14 @@ class SessionMetrics:
 
     def summary(self) -> str:
         """Human-readable summary for logging."""
+        ttfb_str = (f"avg_ttfb={self.avg_ttfb_ms:.0f}ms" if self.avg_ttfb_ms is not None else "no TTFB")
         return (
             f"Session {self.session_id}: "
             f"duration={self.duration_secs:.0f}s, "
             f"turns={self.turn_count}, "
             f"interruptions={self.interruption_count}, "
             f"tools={self.tool_call_count}, "
-            f"avg_ttfb={self.avg_ttfb_ms:.0f}ms" if self.avg_ttfb_ms else "no TTFB"
+            f"{ttfb_str}"
         )
 
 
