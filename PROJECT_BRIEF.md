@@ -397,8 +397,8 @@ pavelo/
 | **4** | Hybrid RAG Search Engine | 7–8 | ✅ **Complete** |
 | **5** | Chat Interface & Text Agent | 9–10 | ✅ **Complete** |
 | 6 | Voice Infrastructure | 11–12 | ✅ **Complete** |
-| 7 | Visual Intelligence Components | 13–14 | 🔜 **Next** |
-| 8 | Memory, Valuation & Seller Flow | 15–16 | ⬜ Planned |
+| 7 | Visual Intelligence Components | 13–14 | ✅ **Complete** |
+| 8 | Memory, Valuation & Seller Flow | 15–16 | 🔜 **Next** |
 | 9 | Agent Dashboard, B2B & Integrations | 17–18 | ⬜ Planned |
 | 10 | Hardening, Performance & Launch Prep | 19–20 | ⬜ Planned |
 
@@ -480,6 +480,22 @@ pavelo/
 - [x] Voice persona: voice-optimized prompt, affirmations, handover phrases
 - [x] Voice quality monitoring: TTFB, WER placeholder, session metrics
 
+### Sprint 7 — Visual Intelligence Components ✅
+- [x] External data API wrappers: Police UK, Ofsted, Land Registry, ONS, TravelTime, Google Places
+- [x] Base utilities: exponential backoff, Redis caching (24-72hr TTL), graceful degradation
+- [x] tRPC intelligence router with 9 endpoints
+- [x] CrimeMap: choropleth density, category filters, time range selector
+- [x] SchoolMap: Ofsted rating pins, detail popup, type filter, catchment circles
+- [x] TransportIsochrone: SVG polygon overlays, mode selector, time band labels
+- [x] AmenityMap: category clusters, POI popups with ratings, radius selector
+- [x] PriceHeatmap: density dots with radial glow, price/sqft toggle
+- [x] AreaDashboard: SVG radar chart, score bars, deprivation index, demographics
+- [x] PriceHistoryChart: SVG area chart with gradient fill, YoY change, sales list
+- [x] MarketTrendDashboard: multi-series line chart, forecast band, index cards
+- [x] Standalone pages: /intelligence/crime, /intelligence/area/[postcode], /intelligence/market
+- [x] Agent visual tools: get_area_stats, get_crime_data, get_school_ratings, get_transport_links
+- [x] VisualPayloadRenderer updated for all 8 new visual types
+
 ---
 
 ## 8. Current State
@@ -517,8 +533,9 @@ pavelo/
 | Conversation DB | ✅ Complete | Prisma models, tRPC CRUD, pagination |
 | LangGraph agent | ✅ Integrated | OpenAI intent + response, Mem0 memory, tools |
 | Agent tools | ✅ Complete | property_details, compare, mortgage_estimate |
+| Visual intelligence | ✅ Complete | 6 external APIs, 8 visualizations, 4 agent tools |
 | Streaming relay | ✅ Complete | Python SSE → Node WS → React UI |
-| Visual payloads | ✅ Complete | property_card, carousel, comparison_table, mortgage |
+| Visual payloads | ✅ Complete | property_card, carousel, comparison_table, mortgage, + 8 S7 types |
 | Agent persona | ✅ Complete | Configurable name/tone/formality, Xara default |
 | LiveKit voice | ✅ Complete | Room management, token gen, React SDK |
 | Voice pipeline | ✅ Complete | Pipecat: VAD + Deepgram STT + Cartesia TTS |
@@ -528,7 +545,7 @@ pavelo/
 | Voice persona | ✅ Complete | Voice-optimized prompts, affirmations |
 | Voice monitoring | ✅ Complete | TTFB, WER placeholder, session metadata |
 
-> **Last updated:** Sprint 6 complete — full voice infrastructure with LiveKit WebRTC, Pipecat pipeline (VAD + Deepgram STT + Cartesia TTS), voice session management, animated voice UI, multi-language support, voice persona, and quality monitoring.
+> **Last updated:** Sprint 7 complete — full visual intelligence layer with 6 external data API wrappers (Police UK, Ofsted, Land Registry, ONS, TravelTime, Google Places), 8 interactive visualization components (CrimeMap, SchoolMap, TransportIsochrone, AmenityMap, PriceHeatmap, AreaDashboard, PriceHistoryChart, MarketTrendDashboard), 3 standalone intelligence pages, and 4 LangGraph agent tools emitting visual payloads into chat.
 
 ---
 
