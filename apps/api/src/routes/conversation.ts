@@ -22,6 +22,7 @@ const AddMessageInput = z.object({
   conversationId: z.string().uuid(),
   role: z.enum(["user", "assistant", "system", "tool"]),
   content: z.string().min(1).max(50000),
+  source: z.enum(["text", "voice"]).default("text"),
   metadata: z.record(z.unknown()).optional(),
   visualPayloads: z.array(z.record(z.unknown())).optional(),
 });
@@ -188,6 +189,7 @@ export const conversationRouter = router({
           conversationId: input.conversationId,
           role: input.role,
           content: input.content,
+          source: input.source,
           metadata: input.metadata || {},
           visualPayloads: input.visualPayloads || [],
         },

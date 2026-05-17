@@ -12,8 +12,8 @@
 - [x] S6-04: VAD integration (Silero VAD, barge-in, configurable thresholds)
 
 ### Phase 3 — Voice UI & Transcription (S6-05, S6-06)
-- [ ] S6-05: Voice session UI (waveform, transcription overlay, controls, Xara avatar)
-- [ ] S6-06: Voice-to-chat transcript (save as messages, source tagging)
+- [x] S6-05: Voice session UI (waveform, transcription overlay, controls, Xara avatar)
+- [x] S6-06: Voice-to-chat transcript (save as messages, source tagging)
 
 ### Phase 4 — Multi-language, Persona & Monitoring (S6-08, S6-09, S6-10)
 - [ ] S6-08: Multi-language support (language detection, multilingual TTS)
