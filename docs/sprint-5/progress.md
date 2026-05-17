@@ -11,14 +11,14 @@
 - [x] S5-09: Conversation list / history view (pulled forward)
 
 ### Phase 2 — Full Agent Integration (S5-04, S5-05, S5-06)
-- [ ] S5-04: LangGraph agent full integration
-- [ ] S5-05: Additional agent tools
-- [ ] S5-06: Streaming response relay
+- [x] S5-04: LangGraph agent full integration
+- [x] S5-05: Additional agent tools
+- [x] S5-06: Streaming response relay
 
 ### Phase 3 — Visual Payloads & Chat History (S5-07, S5-08, S5-09)
-- [ ] S5-07: Visual payload protocol
-- [ ] S5-08: Property card visual
-- [ ] S5-09: Conversation list / history view
+- [x] S5-07: Visual payload protocol (completed in Phase 1)
+- [x] S5-08: Property card visual (completed in Phase 1)
+- [x] S5-09: Conversation list / history view (completed in Phase 1)
 
 ### Phase 4 — Agent Persona (S5-10)
 - [ ] S5-10: Agent persona system
