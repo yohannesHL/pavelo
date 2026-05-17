@@ -1,10 +1,10 @@
 # Sprint 2 — Progress
 
-## Phase 0: Bug Fixes (Issues #2-#5)
-- [ ] Fix tRPC router registration with Fastify (#2)
-- [ ] Fix Next.js 15 params type in dynamic routes (#3)
-- [ ] Fix circular CSS variable reference (#4)
-- [ ] Run pnpm install and commit pnpm-lock.yaml (#5)
+## Phase 0: Bug Fixes (Issues #2-#5) ✅
+- [x] Fix tRPC router registration with Fastify (#2)
+- [x] Fix Next.js 15 params type in dynamic routes (#3)
+- [x] Fix circular CSS variable reference (#4)
+- [x] Run pnpm install and commit pnpm-lock.yaml (#5)
 
 ## Phase 1: Property CRUD & Shared Types (S2-02, S2-10)
 - [ ] Expand Prisma schema with full property attributes
