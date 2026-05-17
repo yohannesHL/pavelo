@@ -1,70 +1,59 @@
 "use client";
 
 /**
- * /chat — Chat landing page
+ * /chat/[conversationId] — Active conversation page
  *
- * Shows the empty state with Xara intro and suggestion chips.
- * User must create a new conversation or select one from the sidebar.
+ * Loads conversation history and connects to WebSocket room.
  */
 
 import { useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useChatStore } from "@/stores/chat-store";
 import { ChatMessageList } from "@/components/chat/chat-message-list";
 import { ChatInput } from "@/components/chat/chat-input";
 
-export default function ChatPage() {
-  const router = useRouter();
+export default function ConversationPage() {
+  const params = useParams();
+  const conversationId = params.conversationId as string;
+
   const {
     messages,
     isAgentTyping,
     connectionStatus,
-    conversationId,
+    conversationId: currentConvId,
     sendMessage,
-    createConversation,
     joinRoom,
+    loadMessages,
     clearMessages,
   } = useChatStore();
 
-  // Listen for suggestion chip clicks
+  // Load conversation and join room
   useEffect(() => {
-    const handler = async (e: Event) => {
+    if (conversationId && conversationId !== currentConvId) {
+      clearMessages();
+      loadMessages(conversationId);
+      joinRoom(conversationId);
+    }
+  }, [conversationId, currentConvId, clearMessages, loadMessages, joinRoom]);
+
+  // Listen for suggestion clicks
+  useEffect(() => {
+    const handler = (e: Event) => {
       const suggestion = (e as CustomEvent).detail;
       if (suggestion) {
-        // Create new conversation and send suggestion
-        const id = await createConversation();
-        if (id) {
-          joinRoom(id);
-          router.push(`/chat/${id}`);
-          // Small delay to let WS join complete
-          setTimeout(() => {
-            useChatStore.getState().sendMessage(suggestion);
-          }, 300);
-        }
+        sendMessage(suggestion);
       }
     };
 
     window.addEventListener("chat-suggestion", handler);
     return () => window.removeEventListener("chat-suggestion", handler);
-  }, [createConversation, joinRoom, router]);
+  }, [sendMessage]);
 
   const handleSend = useCallback(
-    async (content: string) => {
-      if (!conversationId) {
-        // Create a new conversation first
-        const id = await createConversation();
-        if (id) {
-          joinRoom(id);
-          router.push(`/chat/${id}`);
-          setTimeout(() => {
-            useChatStore.getState().sendMessage(content);
-          }, 300);
-        }
-      } else {
-        sendMessage(content);
-      }
+    (content: string) => {
+      sendMessage(content);
     },
-    [conversationId, createConversation, joinRoom, router, sendMessage]
+    [sendMessage]
   );
 
   return (

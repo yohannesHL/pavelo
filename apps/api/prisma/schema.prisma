@@ -23,9 +23,10 @@ model User {
   preferences Json? @default("{}")
 
   // Relations
-  properties   Property[]
+  properties    Property[]
   savedSearches SavedSearch[]
   searchEvents  SearchEvent[]
+  conversations Conversation[]
 
   // Timestamps
   createdAt DateTime  @default(now()) @map("created_at")
@@ -169,4 +170,53 @@ enum Tenure {
   share_of_freehold @map("share-of-freehold")
 
   @@map("tenure")
+}
+
+/// Conversation — a chat session between user and Xara (S5-03)
+model Conversation {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+  title     String?
+  metadata  Json     @default("{}")
+
+  // Relations
+  messages  Message[]
+
+  // Timestamps
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("conversations")
+}
+
+/// Message — individual message in a conversation (S5-03)
+model Message {
+  id              String   @id @default(uuid()) @db.Uuid
+  conversationId  String   @map("conversation_id") @db.Uuid
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role            MessageRole
+  content         String   @db.Text
+  metadata        Json     @default("{}")
+  visualPayloads  Json     @default("[]") @map("visual_payloads")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+/// Message role enum
+enum MessageRole {
+  user
+  assistant
+  system
+  tool
+
+  @@map("message_role")
 }

@@ -27,6 +27,7 @@ class AgentState:
         agent_persona: Persona name (default: "xara").
         intent: Classified user intent for the current turn.
         user_preferences: Stored user preferences from profile.
+        visual_payloads: Visual directives for the frontend to render.
         error: Error message if something went wrong.
     """
 
@@ -40,6 +41,7 @@ class AgentState:
     agent_persona: str = "xara"
     intent: str = ""
     user_preferences: dict[str, Any] = field(default_factory=dict)
+    visual_payloads: list[dict[str, Any]] = field(default_factory=list)
     error: str | None = None
 
 

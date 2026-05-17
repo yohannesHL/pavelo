@@ -1,12 +1,13 @@
 """
-Pavelo Agent — LangGraph State Machine Definition
+Pavelo Agent — LangGraph State Machine Definition (S5-04)
 
 The Xara agent graph defines the flow of conversation processing:
 
   START → memory_retrieval → intent_classifier → [route by intent]
-    → property_search / response_generator
+    → property_search / tool_executor / response_generator
     → memory_writer → END
 
+All nodes are async for proper OpenAI and Mem0 integration.
 Checkpointing is configured for conversation persistence.
 """
 
@@ -21,13 +22,18 @@ from src.nodes.intent_classifier import intent_classifier_node
 from src.nodes.property_search import property_search_node
 from src.nodes.response_generator import response_generator_node
 from src.nodes.memory_writer import memory_writer_node
+from src.nodes.tool_executor import tool_executor_node
 
 
 def route_by_intent(state: AgentState) -> str:
     """Route to the appropriate node based on classified intent."""
-    search_intents = {"property_search", "property_detail", "comparison"}
+    search_intents = {"property_search"}
+    tool_intents = {"comparison", "property_detail", "valuation_request"}
+
     if state.intent in search_intents:
         return "property_search"
+    if state.intent in tool_intents:
+        return "tool_executor"
     return "response_generator"
 
 
@@ -43,6 +49,7 @@ def build_agent_graph() -> StateGraph:
     graph.add_node("memory_retrieval", memory_retrieval_node)
     graph.add_node("intent_classifier", intent_classifier_node)
     graph.add_node("property_search", property_search_node)
+    graph.add_node("tool_executor", tool_executor_node)
     graph.add_node("response_generator", response_generator_node)
     graph.add_node("memory_writer", memory_writer_node)
 
@@ -56,12 +63,14 @@ def build_agent_graph() -> StateGraph:
         route_by_intent,
         {
             "property_search": "property_search",
+            "tool_executor": "tool_executor",
             "response_generator": "response_generator",
         },
     )
 
-    # After search, generate a response
+    # After search or tools, generate a response
     graph.add_edge("property_search", "response_generator")
+    graph.add_edge("tool_executor", "response_generator")
 
     # After response, write memories
     graph.add_edge("response_generator", "memory_writer")
@@ -70,7 +79,6 @@ def build_agent_graph() -> StateGraph:
     graph.add_edge("memory_writer", END)
 
     # --- Checkpointing ---
-    # Using in-memory saver for dev; switch to Redis/SQLite for production
     checkpointer = MemorySaver()
 
     return graph.compile(checkpointer=checkpointer)
