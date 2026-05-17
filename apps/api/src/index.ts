@@ -12,12 +12,16 @@ import { createContext } from "./context.js";
 import { imageRoutes } from "./routes/upload.js";
 import { websocketPlugin } from "./routes/websocket.js";
 import { registerTraceMiddleware } from "./middleware/trace.js";
+import { getSearchCacheMetrics } from "./lib/search-cache.js";
+import { prisma } from "./lib/prisma.js";
 
 config();
 
 const app = Fastify({
   logger: true,
 });
+
+async function main() {
 
 // --- Middleware ---
 await app.register(helmet, {
@@ -130,7 +134,6 @@ app.get("/health", async () => {
 });
 
 // --- Search Cache Metrics (S10-04) ---
-import { getSearchCacheMetrics } from "./lib/search-cache.js";
 
 app.get("/api/v1/search/cache-metrics", async () => {
   return getSearchCacheMetrics();
@@ -148,7 +151,6 @@ app.get("/api/v1/voice/metrics", async (request) => {
 
 // --- Memory Profile REST Endpoint (S8-01) ---
 // Called by the Python agent service to store consolidated profiles
-import { prisma } from "./lib/prisma.js";
 
 app.post("/api/v1/memory/profile", async (request, reply) => {
   const body = request.body as Record<string, unknown>;
@@ -211,7 +213,7 @@ app.get("/api/v1/viewings/slots", async (request, reply) => {
       },
       select: { time: true },
     });
-    const bookedTimes = new Set(booked.map((b) => b.time));
+    const bookedTimes = new Set(booked.map((b: { time: string }) => b.time));
     const available = TIME_SLOTS.filter((t) => !bookedTimes.has(t));
     return { status: "success", propertyId, date, slots: available, bookedSlots: Array.from(bookedTimes) };
   } catch (err: unknown) {
@@ -254,5 +256,9 @@ try {
   app.log.error(err);
   process.exit(1);
 }
+
+} // end main()
+
+main();
 
 export default app;
