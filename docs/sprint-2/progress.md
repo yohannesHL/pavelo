@@ -17,10 +17,10 @@
 - [x] Auth state management
 - [x] Protected routes
 
-## Phase 3: Property Pages & Image Upload (S2-03, S2-04, S2-05)
-- [ ] Property listing page with search/filters
-- [ ] Image upload endpoint
-- [ ] Property detail page
+## Phase 3: Property Pages & Image Upload (S2-03, S2-04, S2-05) ✅
+- [x] Property listing page with search/filters
+- [x] Image upload endpoint
+- [x] Property detail page
 
 ## Phase 4: AI Agent Skeleton (S2-06, S2-07)
 - [ ] LangGraph StateGraph definition
