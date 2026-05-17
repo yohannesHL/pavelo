@@ -325,3 +325,111 @@ async def get_voice_status(room_name: str):
         "room_name": room_name,
         "metrics": pipeline.metrics,
     }
+
+
+# --- Memory Consolidation Endpoints (S8-01) ---
+
+class ConsolidateRequest(BaseModel):
+    """Optional body for consolidation request."""
+    force: bool = False
+
+
+@app.post("/api/v1/memory/consolidate/{user_id}")
+async def consolidate_memory(user_id: str, request: Optional[ConsolidateRequest] = None):
+    """Consolidate cross-session memories for a user.
+    
+    Extracts facts from all conversations, deduplicates,
+    and updates the user's consolidated profile.
+    """
+    from src.memory.consolidation import consolidate_user_memory
+    
+    logger.info("memory_consolidation_requested", user_id=user_id)
+    
+    try:
+        result = await consolidate_user_memory(user_id)
+        return result
+    except Exception as e:
+        logger.error("memory_consolidation_error", user_id=user_id, error=str(e))
+        raise HTTPException(status_code=500, detail=f"Consolidation failed: {str(e)}")
+
+
+# --- Valuation Endpoint (S8-04) ---
+
+class ValuationRequest(BaseModel):
+    """Request for AI property valuation."""
+    user_id: str
+    address: str
+    postcode: str
+    property_type: str
+    bedrooms: int
+    bathrooms: int
+    square_feet: Optional[int] = None
+    year_built: Optional[int] = None
+    features: list[str] = []
+
+
+@app.post("/api/v1/valuation/generate")
+async def generate_valuation(request: ValuationRequest):
+    """Generate an AI-powered property valuation.
+    
+    Uses comparable search, price/sqft analysis, and market trends.
+    """
+    from src.tools.generate_valuation import generate_valuation_impl
+    
+    logger.info(
+        "valuation_requested",
+        user_id=request.user_id,
+        postcode=request.postcode,
+    )
+    
+    try:
+        result = await generate_valuation_impl(
+            address=request.address,
+            postcode=request.postcode,
+            property_type=request.property_type,
+            bedrooms=request.bedrooms,
+            bathrooms=request.bathrooms,
+            square_feet=request.square_feet,
+            year_built=request.year_built,
+            features=request.features,
+        )
+        return result
+    except Exception as e:
+        logger.error("valuation_error", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Valuation failed: {str(e)}")
+
+
+# --- Description Generation Endpoint (S8-03) ---
+
+class DescriptionRequest(BaseModel):
+    """Request for AI property description generation."""
+    property_type: str
+    bedrooms: int
+    bathrooms: int
+    square_feet: Optional[int] = None
+    year_built: Optional[int] = None
+    features: list[str] = []
+    address: str = ""
+    postcode: str = ""
+
+
+@app.post("/api/v1/property/generate-description")
+async def generate_description(request: DescriptionRequest):
+    """Generate an AI property description from attributes."""
+    from src.tools.generate_description import generate_description_impl
+    
+    try:
+        result = await generate_description_impl(
+            property_type=request.property_type,
+            bedrooms=request.bedrooms,
+            bathrooms=request.bathrooms,
+            square_feet=request.square_feet,
+            year_built=request.year_built,
+            features=request.features,
+            address=request.address,
+            postcode=request.postcode,
+        )
+        return result
+    except Exception as e:
+        logger.error("description_gen_error", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Description generation failed: {str(e)}")

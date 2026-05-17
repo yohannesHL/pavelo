@@ -67,6 +67,42 @@ app.get("/api/v1/voice/metrics", async (request) => {
   };
 });
 
+// --- Memory Profile REST Endpoint (S8-01) ---
+// Called by the Python agent service to store consolidated profiles
+import { prisma } from "./lib/prisma.js";
+
+app.post("/api/v1/memory/profile", async (request, reply) => {
+  const body = request.body as any;
+  if (!body?.userId) {
+    return reply.code(400).send({ error: "userId required" });
+  }
+
+  try {
+    const { userId, lastConsolidatedAt, ...data } = body;
+    const profile = await prisma.userProfile.upsert({
+      where: { userId },
+      create: {
+        userId,
+        ...data,
+        lastConsolidatedAt: lastConsolidatedAt
+          ? new Date(lastConsolidatedAt)
+          : new Date(),
+        consolidationCount: 1,
+      },
+      update: {
+        ...data,
+        lastConsolidatedAt: lastConsolidatedAt
+          ? new Date(lastConsolidatedAt)
+          : new Date(),
+        consolidationCount: { increment: 1 },
+      },
+    });
+    return reply.code(200).send(profile);
+  } catch (err: any) {
+    return reply.code(500).send({ error: err.message });
+  }
+});
+
 // --- Start Server ---
 const port = Number(process.env.API_PORT) || 4000;
 const host = process.env.HOST || "0.0.0.0";

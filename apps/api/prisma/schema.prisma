@@ -266,3 +266,158 @@ enum MessageRole {
 
   @@map("message_role")
 }
+
+/// UserProfile — consolidated cross-session memory profile (S8-01)
+model UserProfile {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @unique @map("user_id") @db.Uuid
+  
+  // Consolidated preferences
+  preferences     Json     @default("{}") // { budgetMin, budgetMax, preferredAreas, propertyTypes, styles, dealBreakers, ... }
+  budgetMin       Int?     @map("budget_min")
+  budgetMax       Int?     @map("budget_max")
+  preferredAreas  String[] @default([]) @map("preferred_areas")
+  propertyStyles  String[] @default([]) @map("property_styles")
+  propertyTypes   String[] @default([]) @map("property_types")
+  dealBreakers    String[] @default([]) @map("deal_breakers")
+  
+  // Intent patterns
+  intentPatterns  Json     @default("{}") @map("intent_patterns") // { search: 5, valuation: 2, ... }
+  sentimentScore  Float?   @map("sentiment_score") // -1 to 1 aggregate
+  
+  // Memory timeline
+  memories        Json     @default("[]") // [{ fact, source, learnedAt, category }]
+  
+  // Consolidation metadata
+  lastConsolidatedAt DateTime? @map("last_consolidated_at")
+  consolidationCount Int      @default(0) @map("consolidation_count")
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("user_profiles")
+}
+
+/// ViewingBooking — property viewing appointments (S8-06)
+model ViewingBooking {
+  id          String              @id @default(uuid()) @db.Uuid
+  propertyId  String              @map("property_id") @db.Uuid
+  userId      String              @map("user_id") @db.Uuid
+  date        DateTime
+  time        String              // e.g. "10:00", "14:30"
+  status      ViewingBookingStatus @default(pending)
+  notes       String?             @db.Text
+  
+  // Confirmation
+  confirmedAt DateTime?           @map("confirmed_at")
+  cancelledAt DateTime?           @map("cancelled_at")
+  cancelReason String?            @map("cancel_reason")
+  
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  @@index([propertyId])
+  @@index([userId])
+  @@index([date])
+  @@index([status])
+  @@map("viewing_bookings")
+}
+
+/// ViewingBooking status enum
+enum ViewingBookingStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+  no_show
+
+  @@map("viewing_booking_status")
+}
+
+/// PushSubscription — Web Push API subscriptions (S8-10)
+model PushSubscription {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  endpoint    String   @unique
+  p256dh      String   // public key
+  auth        String   // auth secret
+  
+  // Notification preferences
+  preferences Json     @default("{\"newMatches\":true,\"priceDrops\":true,\"viewingReminders\":true}") 
+  
+  isActive    Boolean  @default(true) @map("is_active")
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("push_subscriptions")
+}
+
+/// SavedProperty — user's saved/shortlisted properties (S8-09)
+model SavedProperty {
+  id          String              @id @default(uuid()) @db.Uuid
+  userId      String              @map("user_id") @db.Uuid
+  propertyId  String              @map("property_id") @db.Uuid
+  column      SavedPropertyColumn @default(interested)
+  position    Int                 @default(0) // ordering within column
+  notes       String?             @db.Text
+  tags        String[]            @default([])
+  
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  @@unique([userId, propertyId])
+  @@index([userId])
+  @@index([column])
+  @@map("saved_properties")
+}
+
+/// SavedProperty column enum
+enum SavedPropertyColumn {
+  interested
+  shortlisted
+  visited
+  rejected
+
+  @@map("saved_property_column")
+}
+
+/// ValuationReport — AI-generated property valuation (S8-04)
+model ValuationReport {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  propertyId      String?  @map("property_id") @db.Uuid
+  
+  // Property details (snapshot at valuation time)
+  address         String
+  postcode        String
+  propertyType    String   @map("property_type")
+  bedrooms        Int
+  bathrooms       Int
+  squareFeet      Int?     @map("square_feet")
+  
+  // Valuation results
+  estimateLow     Int      @map("estimate_low")
+  estimateMid     Int      @map("estimate_mid")
+  estimateHigh    Int      @map("estimate_high")
+  confidence      Float    // 0-1
+  methodology     String   @db.Text
+  
+  // Comparable data
+  comparables     Json     @default("[]") // [{ address, price, sqft, distance, date }]
+  marketTrend     String?  @map("market_trend") // "up", "stable", "down"
+  pricePerSqft    Int?     @map("price_per_sqft")
+  
+  // Share
+  shareToken      String?  @unique @map("share_token")
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([postcode])
+  @@index([shareToken])
+  @@map("valuation_reports")
+}

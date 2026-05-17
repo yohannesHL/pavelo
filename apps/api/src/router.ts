@@ -6,6 +6,7 @@ import { router, publicProcedure, protectedProcedure } from "./router-helpers.js
 import { conversationRouter } from "./routes/conversation.js";
 import { voiceRouter } from "./routes/voice.js";
 import { intelligenceRouter } from "./routes/intelligence.js";
+import { memoryRouter } from "./routes/memory.js";
 
 // --- Zod Schemas ---
 
@@ -496,6 +497,9 @@ export const appRouter = router({
 
   /** Visual intelligence — external data services (S7-09) */
   intelligence: intelligenceRouter,
+
+  /** Memory profiles — consolidation and preferences (S8-01) */
+  memory: memoryRouter,
 
   /** Search analytics (S4-09) */
   searchAnalytics: router({
