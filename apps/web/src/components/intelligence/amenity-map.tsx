@@ -261,7 +261,7 @@ export function AmenityMap({
               <div className="relative">
                 <div
                   className={`flex h-5 w-5 items-center justify-center rounded-full border-[1.5px] border-white shadow-md text-[9px] transition-transform duration-200 ${
-                    isSelected || isHovered ? "scale-130" : ""
+                    isSelected || isHovered ? "scale-[1.3]" : ""
                   }`}
                   style={{ backgroundColor: color }}
                 >
