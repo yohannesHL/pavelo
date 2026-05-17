@@ -16,9 +16,17 @@
   - Returns both structured params + semantic query for dense search
   - Graceful fallback on LLM error
 
-### Phase 2 — Agent Search Tool & API (S4-03, S4-04)
-- [ ] S4-03: search_properties LangGraph tool
-- [ ] S4-04: Search API endpoint (tRPC)
+### Phase 2 — Agent Search Tool & API (S4-03, S4-04) ✅
+- [x] S4-03: search_properties LangGraph tool
+  - `services/agent/src/tools/search_properties.py` — full LangGraph tool
+  - Structured input schema, calls ML hybrid search, result formatting
+  - Dedup against properties_shown list in agent state
+  - Updated `nodes/property_search.py` to use real search
+- [x] S4-04: Search API endpoint (tRPC)
+  - `apps/api/src/router.ts` — `search.query` tRPC endpoint
+  - Calls ML service, hydrates from PostgreSQL, pagination, sort controls
+  - Fallback to DB text search if ML service unavailable
+  - Added SavedSearch + SearchEvent Prisma models
 
 ### Phase 3 — Search UI & Map (S4-05, S4-06)
 - [ ] S4-05: Search results UI (revamp)
