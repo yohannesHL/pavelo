@@ -112,11 +112,10 @@ export const memoryRouter = router({
     }
   }),
 
-  /** Update entire memory profile (called by agent service) */
-  updateProfile: publicProcedure
+  /** Update entire memory profile (authenticated — user can only update own profile) */
+  updateProfile: protectedProcedure
     .input(
       z.object({
-        userId: z.string().uuid(),
         preferences: z.record(z.any()).optional(),
         budgetMin: z.number().nullable().optional(),
         budgetMax: z.number().nullable().optional(),
@@ -130,8 +129,9 @@ export const memoryRouter = router({
         lastConsolidatedAt: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
-      const { userId, lastConsolidatedAt, ...data } = input;
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.userId;
+      const { lastConsolidatedAt, ...data } = input;
 
       const profile = await prisma.userProfile.upsert({
         where: { userId },
