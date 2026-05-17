@@ -46,3 +46,8 @@
 - [x] Fix #53: KPI cards fetch from API
 - [x] Fix #54: Analytics date range filtering
 - [x] Fix #55: TypeScript implicit-any cleanup
+
+### Phase 7: QA Fixes (Major Issues)
+- [x] Fix #57: Apply auth_limit zone to nginx auth routes — added location blocks for /trpc/auth.* and /api/auth/ with burst=3, nodelay, 429 status
+- [x] Fix #58: Implement real API rate limiting — replaced cosmetic X-RateLimit-Auth header with sliding-window enforcer (5 req/min per IP, 429 + Retry-After)
+- [x] Fix #59: TypeScript implicit-any cleanup (comprehensive) — 18 files, 0 `any` remaining in Sprint 10 files. Added AuthenticatedRequest, MLSearchResult, Prisma.* types, catch(error: unknown) everywhere
