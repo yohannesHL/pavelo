@@ -279,3 +279,51 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.5;
   transform: rotate(2deg);
 }
+
+/* ─── Agency Dashboard Styles (S9-01) ─── */
+
+.agency-dashboard {
+  --agency-sidebar-bg: #0D1B2A;
+  --agency-content-bg: #F8F9FC;
+  --agency-card-bg: #ffffff;
+}
+
+.agency-kpi-card {
+  transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+}
+
+.agency-kpi-card:hover {
+  transform: translateY(-2px);
+}
+
+/* ─── White-label CSS Override (S9-05) ─── */
+/* Agency branding overrides are applied via inline style on a wrapper div.
+   CSS custom properties cascade from there.
+   Usage:
+     <div style="--color-primary: #custom; --color-accent: #custom;">
+       ...children inherit these...
+     </div>
+*/
+.agency-branded {
+  /* All children use inherited custom properties */
+}
+
+.agency-branded .chat-header {
+  background-color: var(--color-primary);
+}
+
+.agency-branded .chat-accent {
+  color: var(--color-accent);
+}
+
+/* ─── Billing Plan Cards (S9-07) ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.plan-popular {
+  background: linear-gradient(90deg, transparent, rgba(244, 162, 97, 0.05), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}

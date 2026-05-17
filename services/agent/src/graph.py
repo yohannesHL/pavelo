@@ -23,13 +23,17 @@ from src.nodes.property_search import property_search_node
 from src.nodes.response_generator import response_generator_node
 from src.nodes.memory_writer import memory_writer_node
 from src.nodes.tool_executor import tool_executor_node
+from src.nodes.handover import handover_escalation_node
 
 
 def route_by_intent(state: AgentState) -> str:
     """Route to the appropriate node based on classified intent."""
     search_intents = {"property_search"}
     tool_intents = {"comparison", "property_detail", "valuation_request", "booking_request"}
+    handover_intents = {"human_handover"}
 
+    if state.intent in handover_intents:
+        return "handover_escalation"
     if state.intent in search_intents:
         return "property_search"
     if state.intent in tool_intents:
@@ -52,6 +56,7 @@ def build_agent_graph() -> StateGraph:
     graph.add_node("tool_executor", tool_executor_node)
     graph.add_node("response_generator", response_generator_node)
     graph.add_node("memory_writer", memory_writer_node)
+    graph.add_node("handover_escalation", handover_escalation_node)
 
     # --- Define Edges ---
     graph.set_entry_point("memory_retrieval")
@@ -65,12 +70,14 @@ def build_agent_graph() -> StateGraph:
             "property_search": "property_search",
             "tool_executor": "tool_executor",
             "response_generator": "response_generator",
+            "handover_escalation": "handover_escalation",
         },
     )
 
     # After search or tools, generate a response
     graph.add_edge("property_search", "response_generator")
     graph.add_edge("tool_executor", "response_generator")
+    graph.add_edge("handover_escalation", "response_generator")
 
     # After response, write memories
     graph.add_edge("response_generator", "memory_writer")
