@@ -7,6 +7,7 @@ import { conversationRouter } from "./routes/conversation.js";
 import { voiceRouter } from "./routes/voice.js";
 import { intelligenceRouter } from "./routes/intelligence.js";
 import { memoryRouter } from "./routes/memory.js";
+import { viewingRouter } from "./routes/viewing.js";
 
 // --- Zod Schemas ---
 
@@ -500,6 +501,9 @@ export const appRouter = router({
 
   /** Memory profiles — consolidation and preferences (S8-01) */
   memory: memoryRouter,
+
+  /** Viewing bookings — calendar, book, cancel (S8-06) */
+  viewing: viewingRouter,
 
   /** Search analytics (S4-09) */
   searchAnalytics: router({

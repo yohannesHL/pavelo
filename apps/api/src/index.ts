@@ -103,6 +103,60 @@ app.post("/api/v1/memory/profile", async (request, reply) => {
   }
 });
 
+// --- Viewing Booking REST Endpoints (S8-06) ---
+// Called by the Python agent service
+
+app.get("/api/v1/viewings/slots", async (request, reply) => {
+  const { propertyId, date } = request.query as any;
+  if (!propertyId || !date) {
+    return reply.code(400).send({ error: "propertyId and date required" });
+  }
+
+  const TIME_SLOTS = [
+    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+    "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
+    "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
+  ];
+
+  try {
+    const booked = await prisma.viewingBooking.findMany({
+      where: {
+        propertyId,
+        date: new Date(date),
+        status: { in: ["pending", "confirmed"] },
+      },
+      select: { time: true },
+    });
+    const bookedTimes = new Set(booked.map((b: any) => b.time));
+    const available = TIME_SLOTS.filter((t) => !bookedTimes.has(t));
+    return { status: "success", propertyId, date, slots: available, bookedSlots: Array.from(bookedTimes) };
+  } catch (err: any) {
+    return reply.code(500).send({ error: err.message });
+  }
+});
+
+app.post("/api/v1/viewings/book", async (request, reply) => {
+  const body = request.body as any;
+  if (!body?.propertyId || !body?.date || !body?.time) {
+    return reply.code(400).send({ error: "propertyId, date, and time required" });
+  }
+
+  try {
+    const booking = await prisma.viewingBooking.create({
+      data: {
+        propertyId: body.propertyId,
+        userId: body.userId || "00000000-0000-0000-0000-000000000000",
+        date: new Date(body.date),
+        time: body.time,
+        notes: body.notes || null,
+      },
+    });
+    return { status: "success", booking };
+  } catch (err: any) {
+    return reply.code(500).send({ error: err.message });
+  }
+});
+
 // --- Start Server ---
 const port = Number(process.env.API_PORT) || 4000;
 const host = process.env.HOST || "0.0.0.0";
