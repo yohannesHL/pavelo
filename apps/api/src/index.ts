@@ -9,6 +9,7 @@ import {
 import { config } from "dotenv";
 import { appRouter, type AppRouter } from "./router.js";
 import { createContext } from "./context.js";
+import { imageRoutes } from "./routes/upload.js";
 
 config();
 
@@ -38,6 +39,9 @@ await app.register(fastifyTRPCPlugin, {
     createContext,
   } satisfies FastifyTRPCPluginOptions<AppRouter>["trpcOptions"],
 });
+
+// --- REST Routes ---
+await app.register(imageRoutes);
 
 // --- Health Check ---
 app.get("/health", async () => {
