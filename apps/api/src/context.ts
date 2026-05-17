@@ -1,13 +1,36 @@
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
+import { supabaseAdmin } from "./lib/supabase.js";
 
 /**
  * tRPC context — created for each request.
- * Contains user info from auth middleware when available.
+ * Extracts and validates Supabase JWT from the Authorization header.
+ * Sets userId, userEmail, and userRole when a valid token is present.
  */
-export function createContext({ req, res }: CreateFastifyContextOptions) {
-  const userId = (req as any).userId as string | undefined;
-  const userEmail = (req as any).userEmail as string | undefined;
-  const userRole = (req as any).userRole as string | undefined;
+export async function createContext({ req, res }: CreateFastifyContextOptions) {
+  let userId: string | undefined;
+  let userEmail: string | undefined;
+  let userRole: string | undefined;
+
+  const authHeader = req.headers.authorization;
+
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+
+    if (token) {
+      try {
+        const { data, error } = await supabaseAdmin.auth.getUser(token);
+
+        if (!error && data.user) {
+          userId = data.user.id;
+          userEmail = data.user.email;
+          userRole = data.user.user_metadata?.role || "buyer";
+        }
+      } catch {
+        // Token validation failed — userId stays undefined.
+        // protectedProcedure middleware will throw UNAUTHORIZED.
+      }
+    }
+  }
 
   return {
     req,
