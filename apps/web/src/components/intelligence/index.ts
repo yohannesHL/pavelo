@@ -11,3 +11,5 @@ export { PriceHeatmap } from "./price-heatmap";
 export { AreaDashboard } from "./area-dashboard";
 export { PriceHistoryChart } from "./price-history-chart";
 export { MarketTrendDashboard, generateMockMarketData } from "./market-trend-dashboard";
+export { PlanningApplicationsMap } from "./planning-applications";
+export { FloodRiskMap, FloodRiskBadge } from "./flood-risk-map";

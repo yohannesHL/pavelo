@@ -51,4 +51,18 @@
 - Usage meters show warning at 80% threshold
 - Live branding preview shows mock chat interface with agency colors
 
-## Phase 4: Feedback & Additional Visuals (S9-08, S9-09, S9-10) ⬜
+## Phase 4: Feedback & Additional Visuals (S9-08, S9-09, S9-10) ✅
+
+### Completed
+- **Feedback Thumbs** (`components/chat/feedback-thumbs.tsx`): Thumbs up/down on agent messages, correction input, submitted state
+- **Feedback Backend**: Already in agency router — `submitFeedback` (upsert), `listFeedback` (JSON/JSONL export for fine-tuning)
+- **Planning Applications Map** (`components/intelligence/planning-applications.tsx`): SVG map with distance rings, status pins, application list with impact indicator, status filter, click-to-expand details
+- **Flood Risk Map** (`components/intelligence/flood-risk-map.tsx`): SVG map with zone overlays, risk breakdown cards, environmental info, `FloodRiskBadge` compact component
+- **Standalone Pages**: `/intelligence/planning`, `/intelligence/flood`
+- **Component Index Updated**: Added PlanningApplicationsMap, FloodRiskMap, FloodRiskBadge exports
+
+### Decisions Made
+- Used mock data for planning/flood (API wrappers ready for LPA API / Environment Agency integration)
+- FloodRiskBadge designed to be embeddable on property cards
+- Planning map uses SVG relative coordinates (same Mapbox-compatible pattern as S7)
+- Feedback correction triggers memory update pathway (correction field stored for retraining)
