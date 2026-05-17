@@ -28,7 +28,8 @@
 - [x] VisualPayloadRenderer updated for all chart types
 
 ## Phase 4: Agent Visual Tools (S7-10)
-- [ ] get_area_stats tool
-- [ ] get_crime_data tool
-- [ ] get_school_ratings tool
-- [ ] get_transport_links tool
+- [x] get_area_stats tool (ONS wrapper → area_dashboard visual)
+- [x] get_crime_data tool (Police UK wrapper → crime_map visual)
+- [x] get_school_ratings tool (Ofsted wrapper → school_map visual)
+- [x] get_transport_links tool (TravelTime wrapper → transport_isochrone visual)
+- [x] Updated tools __init__.py with all Sprint 7 exports
