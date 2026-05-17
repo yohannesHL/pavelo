@@ -66,3 +66,18 @@
 - FloodRiskBadge designed to be embeddable on property cards
 - Planning map uses SVG relative coordinates (same Mapbox-compatible pattern as S7)
 - Feedback correction triggers memory update pathway (correction field stored for retraining)
+
+## QA Fixes — Blockers & Majors ✅
+
+### Fixed Issues
+- **#46 BLOCKER**: Excluded `secret` field from `listWebhooks` response using explicit `select` clause
+- **#51 BLOCKER**: Added Stripe webhook signature verification (HMAC-SHA256, timestamp tolerance, timing-safe comparison) to `handleStripeEvent`
+- **#47 MAJOR**: Added `verifyAgencyMember()` check to `requestHandover` mutation
+- **#48 MAJOR**: Added admin/agent role check to `billing.recordUsage` — regular users cannot inflate meters
+- **#49 MAJOR**: Scoped `listFeedback` and analytics feedback queries to agency tenant via member user IDs
+- **#50 MAJOR**: Added `@relation` with `onDelete: Cascade` between `WebhookDelivery` → `WebhookConfig`, plus `deliveries` field on WebhookConfig
+
+### Technical Notes
+- Stripe signature verification implements the full algorithm: parse `t=` timestamp + `v1=` signatures, HMAC the `timestamp.body`, timing-safe compare, 5-minute tolerance
+- Feedback tenant scoping uses agency member user IDs since the Feedback model has no direct agencyId field
+- All fixes are backwards-compatible — no API contract changes except `listFeedback` now requires `agencyId` input
