@@ -258,7 +258,7 @@ textarea:focus-visible {
     background: #fff;
   }
   
-  header, .print\\:hidden {
+  header, [class*="print\:hidden"] {
     display: none !important;
   }
   
