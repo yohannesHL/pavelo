@@ -48,11 +48,13 @@ from src.routes.embed import router as embed_router
 from src.routes.classify import router as classify_router
 from src.routes.jobs import router as jobs_router
 from src.routes.analyse import router as analyse_router
+from src.routes.aggregate import router as aggregate_router
 
 app.include_router(embed_router)
 app.include_router(classify_router)
 app.include_router(jobs_router)
 app.include_router(analyse_router)
+app.include_router(aggregate_router)
 
 
 @app.get("/health")
