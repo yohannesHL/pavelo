@@ -276,6 +276,14 @@ export async function websocketPlugin(app: FastifyInstance) {
     if (url.pathname !== "/ws") return;
 
     // Extract token from query param or header
+    // SECURITY NOTE (#27): Passing JWT in the query string is a known limitation.
+    // Query params can appear in server access logs, proxy logs, and browser history.
+    // Future improvement: migrate to an auth-first-message protocol where the
+    // WebSocket connects unauthenticated, then the first message is:
+    //   { type: "auth", token: "<jwt>" }
+    // The server would then validate and associate the socket with the user
+    // before accepting any other message types. This avoids token exposure
+    // in URLs entirely. Planned for a future sprint.
     const token =
       url.searchParams.get("token") ||
       request.headers.authorization?.replace("Bearer ", "");

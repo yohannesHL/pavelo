@@ -145,6 +145,8 @@ export const useChatStore = create<ChatState>((set, get) => {
       }
 
       try {
+        // TODO (#27): Migrate to auth-first-message protocol instead of query param.
+        // See server-side comment in websocket.ts for details.
         const ws = new WebSocket(`${WS_URL}?token=${token}`);
 
         ws.onopen = () => {
