@@ -21,12 +21,14 @@ model User {
 
   // Buyer preferences (JSON)
   preferences Json? @default("{}")
+  languagePreference String @default("en") @map("language_preference")
 
   // Relations
   properties    Property[]
   savedSearches SavedSearch[]
   searchEvents  SearchEvent[]
   conversations Conversation[]
+  voiceSessions VoiceSession[]
 
   // Timestamps
   createdAt DateTime  @default(now()) @map("created_at")
@@ -182,6 +184,7 @@ model Conversation {
 
   // Relations
   messages  Message[]
+  voiceSessions VoiceSession[]
 
   // Timestamps
   createdAt DateTime  @default(now()) @map("created_at")
@@ -200,6 +203,7 @@ model Message {
   conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   role            MessageRole
   content         String   @db.Text
+  source          String   @default("text") // "text" or "voice" (S6-06)
   metadata        Json     @default("{}")
   visualPayloads  Json     @default("[]") @map("visual_payloads")
 
@@ -209,6 +213,48 @@ model Message {
   @@index([conversationId])
   @@index([createdAt])
   @@map("messages")
+}
+
+/// Voice session — tracks active/completed voice calls (S6-07)
+model VoiceSession {
+  id              String             @id @default(uuid()) @db.Uuid
+  userId          String             @map("user_id") @db.Uuid
+  user            User               @relation(fields: [userId], references: [id])
+  conversationId  String?            @map("conversation_id") @db.Uuid
+  conversation    Conversation?      @relation(fields: [conversationId], references: [id])
+  roomName        String             @unique @map("room_name")
+  status          VoiceSessionStatus @default(active)
+  language        String             @default("en")
+  recordingConsent Boolean           @default(false) @map("recording_consent")
+
+  // Metrics
+  startedAt       DateTime           @default(now()) @map("started_at")
+  endedAt         DateTime?          @map("ended_at")
+  durationSecs    Int?               @map("duration_secs")
+  interruptionCount Int              @default(0) @map("interruption_count")
+  toolCallCount   Int                @default(0) @map("tool_call_count")
+
+  // Metadata: TTFB, WER, etc.
+  metadata        Json               @default("{}")
+
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([status])
+  @@index([startedAt])
+  @@index([roomName])
+  @@map("voice_sessions")
+}
+
+/// Voice session status enum
+enum VoiceSessionStatus {
+  active
+  ended
+  failed
+  timeout
+
+  @@map("voice_session_status")
 }
 
 /// Message role enum

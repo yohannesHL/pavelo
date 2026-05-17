@@ -51,9 +51,19 @@ await app.register(websocketPlugin);
 app.get("/health", async () => {
   return {
     status: "ok",
-    version: "0.2.0",
+    version: "0.3.0",
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
+  };
+});
+
+// --- Voice Metrics REST Endpoint (S6-10) ---
+app.get("/api/v1/voice/metrics", async (request) => {
+  // This is a convenience REST alias for the tRPC voice.getMetrics endpoint
+  // For full auth, use the tRPC endpoint; this provides basic access
+  return {
+    message: "Use tRPC endpoint voice.getMetrics for authenticated metrics",
+    endpoint: "/trpc/voice.getMetrics",
   };
 });
 

@@ -45,9 +45,16 @@ services:
     ports:
       - "0.0.0.0:7880:7880"
       - "0.0.0.0:7881:7881"
+      - "0.0.0.0:7882:7882/udp"
     environment:
       LIVEKIT_KEYS: "devkey: secret"
+      LIVEKIT_LOG_LEVEL: info
     command: --dev
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:7880"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
