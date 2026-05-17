@@ -1,13 +1,11 @@
 """
-Property Search Node (S4-03)
+Property Search Node (S4-03, S5-04)
 
 Executes property search via the search_properties tool.
 Integrates with Qdrant hybrid search through the ML service.
 """
 
 from __future__ import annotations
-
-import asyncio
 
 import structlog
 
@@ -17,7 +15,7 @@ from src.tools.search_properties import SearchPropertiesInput, search_properties
 logger = structlog.get_logger()
 
 
-def property_search_node(state: AgentState) -> dict:
+async def property_search_node(state: AgentState) -> dict:
     """Execute property search based on extracted parameters.
 
     This node:
@@ -73,17 +71,8 @@ def property_search_node(state: AgentState) -> dict:
         exclude_ids=state.properties_shown,
     )
 
-    # Run async search in sync context
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                output = pool.submit(
-                    asyncio.run, search_properties_impl(input_data)
-                ).result()
-        else:
-            output = asyncio.run(search_properties_impl(input_data))
+        output = await search_properties_impl(input_data)
     except Exception as e:
         logger.error("property_search_error", error=str(e))
         return {

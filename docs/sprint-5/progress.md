@@ -3,9 +3,12 @@
 ## Status: 🔄 In Progress
 
 ### Phase 1 — WebSocket Infrastructure & Chat UI (S5-01, S5-02, S5-03)
-- [ ] S5-01: Chat UI component
-- [ ] S5-02: WebSocket infrastructure
-- [ ] S5-03: Conversation persistence
+- [x] S5-01: Chat UI component
+- [x] S5-02: WebSocket infrastructure
+- [x] S5-03: Conversation persistence
+- [x] S5-07: Visual payload protocol (pulled forward)
+- [x] S5-08: Property card visual (pulled forward)
+- [x] S5-09: Conversation list / history view (pulled forward)
 
 ### Phase 2 — Full Agent Integration (S5-04, S5-05, S5-06)
 - [ ] S5-04: LangGraph agent full integration

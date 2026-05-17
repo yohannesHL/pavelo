@@ -1,19 +1,34 @@
 """
-Intent Classifier Node
+Intent Classifier Node (S5-04)
 
-Classifies the user's intent from the latest message to route
-the conversation through the appropriate processing pipeline.
+Uses OpenAI to classify the user's intent from the latest message.
+Routes conversation through the appropriate processing pipeline.
+
+Intents:
+  - property_search: User wants to find properties
+  - property_detail: User wants details on a specific property
+  - comparison: User wants to compare properties
+  - valuation_request: User wants a property valuation
+  - area_inquiry: User asks about neighbourhood/area
+  - booking_request: User wants to book a viewing
+  - greeting: Hello/welcome
+  - farewell: Goodbye
+  - general_question: General real estate question
 """
 
 from __future__ import annotations
 
-import structlog
+import json
 
+import structlog
+from openai import AsyncOpenAI
+
+from src.config import settings
 from src.state import AgentState, IntentType
 
 logger = structlog.get_logger()
 
-# Keywords for basic intent classification (stub — LLM-based in production)
+# Fallback keyword matching for when OpenAI is unavailable
 INTENT_KEYWORDS: dict[str, list[str]] = {
     "property_search": [
         "find", "search", "looking for", "show me", "properties",
@@ -28,7 +43,7 @@ INTENT_KEYWORDS: dict[str, list[str]] = {
         "amenities", "nearby",
     ],
     "valuation_request": [
-        "value", "worth", "valuation", "estimate", "how much",
+        "value", "worth", "valuation", "estimate", "how much is my",
     ],
     "booking_request": [
         "book", "viewing", "visit", "appointment", "schedule",
@@ -44,39 +59,162 @@ INTENT_KEYWORDS: dict[str, list[str]] = {
     ],
 }
 
+CLASSIFY_FUNCTION = {
+    "name": "classify_intent",
+    "description": "Classify the user's intent from their message",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "intent": {
+                "type": "string",
+                "enum": [
+                    "property_search", "property_detail", "area_inquiry",
+                    "valuation_request", "booking_request", "comparison",
+                    "general_question", "greeting", "farewell", "clarification",
+                ],
+                "description": "The classified intent",
+            },
+            "confidence": {
+                "type": "number",
+                "description": "Confidence score 0-1",
+            },
+            "extracted_params": {
+                "type": "object",
+                "description": "Any search parameters extracted from the message",
+                "properties": {
+                    "min_price": {"type": "integer"},
+                    "max_price": {"type": "integer"},
+                    "min_bedrooms": {"type": "integer"},
+                    "max_bedrooms": {"type": "integer"},
+                    "property_type": {"type": "string"},
+                    "area": {"type": "string"},
+                    "postcode": {"type": "string"},
+                },
+            },
+        },
+        "required": ["intent", "confidence"],
+    },
+}
 
-def intent_classifier_node(state: AgentState) -> dict:
+
+async def _classify_with_llm(message: str, context: str = "") -> tuple[str, dict]:
+    """Classify intent using OpenAI function calling.
+
+    Returns:
+        Tuple of (intent, extracted_params)
+    """
+    client = AsyncOpenAI(api_key=settings.openai_api_key)
+
+    system_prompt = """You are an intent classifier for a UK real estate AI assistant called Xara.
+Classify the user's message into one of these intents:
+
+- property_search: User wants to find/search for properties
+- property_detail: User asks about a specific property they've seen
+- area_inquiry: User asks about a neighbourhood, schools, crime, transport
+- valuation_request: User wants to know what their property is worth
+- booking_request: User wants to book a viewing
+- comparison: User wants to compare 2+ properties
+- general_question: General real estate question or advice
+- greeting: Hello, hi, starting conversation
+- farewell: Goodbye, thanks, ending conversation
+- clarification: User is clarifying a previous question
+
+Also extract any search parameters if present (prices, bedrooms, area, etc).
+"""
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+    ]
+    if context:
+        messages.append({"role": "system", "content": f"Recent conversation context:\n{context}"})
+    messages.append({"role": "user", "content": message})
+
+    response = await client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=messages,
+        tools=[{"type": "function", "function": CLASSIFY_FUNCTION}],
+        tool_choice={"type": "function", "function": {"name": "classify_intent"}},
+        temperature=0,
+    )
+
+    tool_calls = response.choices[0].message.tool_calls
+    if tool_calls and tool_calls[0].function.arguments:
+        result = json.loads(tool_calls[0].function.arguments)
+        return result.get("intent", "general_question"), result.get("extracted_params", {})
+
+    return "general_question", {}
+
+
+def _classify_with_keywords(message: str) -> str:
+    """Fallback: keyword-based intent classification."""
+    best_intent: IntentType = "general_question"
+    best_score = 0
+
+    for intent, keywords in INTENT_KEYWORDS.items():
+        score = sum(1 for kw in keywords if kw in message)
+        if score > best_score:
+            best_score = score
+            best_intent = intent  # type: ignore
+
+    return best_intent
+
+
+async def intent_classifier_node(state: AgentState) -> dict:
     """Classify user intent from the latest message.
 
-    Stub implementation using keyword matching.
-    Will be replaced with LLM-based classification in Sprint 5.
+    Uses OpenAI function calling for accurate classification,
+    with keyword fallback if OpenAI is unavailable.
 
     Args:
         state: Current agent state.
 
     Returns:
-        Partial state update with intent field set.
+        Partial state update with intent and possibly search params.
     """
     if not state.messages:
         return {"intent": "greeting"}
 
-    last_message = state.messages[-1].content.lower()
+    last_message = state.messages[-1].content
 
-    # Simple keyword matching (placeholder for LLM classifier)
-    best_intent: IntentType = "general_question"
-    best_score = 0
+    # Build context from recent messages
+    context_messages = state.messages[-5:] if len(state.messages) > 1 else []
+    context = "\n".join(
+        f"{'User' if hasattr(m, 'type') and m.type == 'human' else 'Assistant'}: {m.content[:200]}"
+        for m in context_messages[:-1]
+    )
 
-    for intent, keywords in INTENT_KEYWORDS.items():
-        score = sum(1 for kw in keywords if kw in last_message)
-        if score > best_score:
-            best_score = score
-            best_intent = intent  # type: ignore
+    try:
+        if settings.openai_api_key:
+            intent, extracted_params = await _classify_with_llm(last_message, context)
+
+            # Merge extracted params into active search params
+            updated_params = {**state.active_search_params}
+            if extracted_params:
+                for k, v in extracted_params.items():
+                    if v is not None:
+                        updated_params[k] = v
+
+            logger.info(
+                "intent_classified_llm",
+                intent=intent,
+                params=extracted_params,
+                user_id=state.user_id,
+            )
+
+            return {
+                "intent": intent,
+                "active_search_params": updated_params if extracted_params else state.active_search_params,
+            }
+    except Exception as e:
+        logger.warning("intent_classifier_llm_fallback", error=str(e))
+
+    # Fallback to keywords
+    intent = _classify_with_keywords(last_message.lower())
 
     logger.info(
-        "intent_classified",
-        intent=best_intent,
-        score=best_score,
+        "intent_classified_keywords",
+        intent=intent,
         user_id=state.user_id,
     )
 
-    return {"intent": best_intent}
+    return {"intent": intent}
