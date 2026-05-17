@@ -21,7 +21,20 @@
 - Agency sidebar uses dark navy (#0D1B2A) for professional look
 - Used JetBrains Mono (`var(--font-data)`) for all stat values per design spec
 
-## Phase 2: Human Handover & CRM (S9-03, S9-04) 🔄
+## Phase 2: Human Handover & CRM (S9-03, S9-04) ✅
+
+### Completed
+- **Handover Escalation Node** (`services/agent/src/nodes/handover.py`): Detects user_requested, low_confidence, booking_confirmation triggers
+- **Context Packet Generation**: Summarizes conversation, preferences, properties discussed for human agent
+- **LangGraph Integration**: Added `handover_escalation` node to graph, new `human_handover` intent type
+- **Agent State Updated**: Added `handover_triggered` and `agency_id` fields
+- **Billing Router** (`apps/api/src/routes/billing.ts`): Plans, checkout, Stripe webhook handler, usage metering, invoices
+- **Webhook Service** (already in Phase 1): HMAC-SHA256 signed, Zapier-compatible JSON payloads
+
+### Decisions Made
+- Handover node fires API call to create handover request, then continues to response_generator for user-facing message
+- Stripe integration uses mock checkout URLs (real Stripe integration needs env vars)
+- Webhook payloads include `event`, `timestamp`, `data` format (Zapier/Make compatible)
 
 ## Phase 3: White-label & Multi-tenancy (S9-05, S9-06, S9-07) ⬜
 

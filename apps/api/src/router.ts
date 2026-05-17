@@ -11,6 +11,7 @@ import { viewingRouter } from "./routes/viewing.js";
 import { savedPropertyRouter } from "./routes/saved-property.js";
 import { pushRouter } from "./routes/push.js";
 import { agencyRouter } from "./routes/agency.js";
+import { billingRouter } from "./routes/billing.js";
 
 // --- Zod Schemas ---
 
@@ -516,6 +517,9 @@ export const appRouter = router({
 
   /** Agency management, leads, analytics, webhooks, white-label (S9) */
   agency: agencyRouter,
+
+  /** Stripe billing — plans, checkout, usage metering (S9-07) */
+  billing: billingRouter,
 
   /** Search analytics (S4-09) */
   searchAnalytics: router({

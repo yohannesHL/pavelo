@@ -43,6 +43,8 @@ class AgentState:
     user_preferences: dict[str, Any] = field(default_factory=dict)
     visual_payloads: list[dict[str, Any]] = field(default_factory=list)
     error: str | None = None
+    handover_triggered: bool = False
+    agency_id: str = ""
 
 
 # Intent types the classifier can produce
@@ -57,5 +59,6 @@ IntentType = Literal[
     "greeting",
     "farewell",
     "clarification",
+    "human_handover",
     "unknown",
 ]
