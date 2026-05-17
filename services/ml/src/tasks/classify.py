@@ -132,6 +132,122 @@ def classify_style_task(self, image_url: str, property_id: str, job_id: str) -> 
         )
 
 
+@celery_app.task(
+    name="src.tasks.classify.analyse_interior_task",
+    bind=True,
+    max_retries=settings.max_retries,
+    default_retry_delay=settings.retry_backoff,
+    acks_late=True,
+)
+def analyse_interior_task(self, image_url: str, property_id: str, job_id: str) -> dict[str, Any]:
+    """Extract interior attributes from a property image via GPT-4V.
+
+    Args:
+        image_url: URL or path to the image.
+        property_id: Property UUID.
+        job_id: Parent job UUID for tracking.
+
+    Returns:
+        Dict with interior attribute extraction results.
+    """
+    import asyncio
+
+    try:
+        image = _download_image(image_url)
+
+        from src.models.vision import analyse_interior
+
+        attributes = asyncio.run(analyse_interior(image))
+
+        logger.info(
+            "interior_task_complete",
+            property_id=property_id,
+            job_id=job_id,
+            room_type=attributes.room_type,
+        )
+
+        return {
+            "property_id": property_id,
+            "job_id": job_id,
+            "task": "interior_analysis",
+            "status": "completed",
+            "results": attributes.model_dump(),
+        }
+
+    except Exception as exc:
+        logger.error(
+            "interior_task_failed",
+            property_id=property_id,
+            job_id=job_id,
+            error=str(exc),
+            retry=self.request.retries,
+        )
+        raise self.retry(
+            exc=exc,
+            countdown=settings.retry_backoff * (2 ** self.request.retries),
+        )
+
+
+@celery_app.task(
+    name="src.tasks.classify.analyse_condition_task",
+    bind=True,
+    max_retries=settings.max_retries,
+    default_retry_delay=settings.retry_backoff,
+    acks_late=True,
+)
+def analyse_condition_task(self, image_url: str, property_id: str, job_id: str) -> dict[str, Any]:
+    """Estimate construction era and score property condition.
+
+    Args:
+        image_url: URL or path to the image.
+        property_id: Property UUID.
+        job_id: Parent job UUID for tracking.
+
+    Returns:
+        Dict with era estimation and condition scoring results.
+    """
+    import asyncio
+
+    try:
+        image = _download_image(image_url)
+
+        from src.models.condition import analyse_condition
+
+        result = asyncio.run(analyse_condition(image))
+
+        logger.info(
+            "condition_task_complete",
+            property_id=property_id,
+            job_id=job_id,
+            era=result.era.era,
+            overall_condition=result.condition.overall,
+        )
+
+        return {
+            "property_id": property_id,
+            "job_id": job_id,
+            "task": "condition_analysis",
+            "status": "completed",
+            "results": {
+                "era": result.era.model_dump(),
+                "condition": result.condition.model_dump(),
+            },
+        }
+
+    except Exception as exc:
+        logger.error(
+            "condition_task_failed",
+            property_id=property_id,
+            job_id=job_id,
+            error=str(exc),
+            retry=self.request.retries,
+        )
+        raise self.retry(
+            exc=exc,
+            countdown=settings.retry_backoff * (2 ** self.request.retries),
+        )
+
+
 def _download_image(image_url: str):
     """Download an image from URL or read from local path.
 

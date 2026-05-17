@@ -84,7 +84,12 @@ async def submit_job(request: JobSubmitRequest):
     task_tracking: dict[str, Any] = {}
 
     try:
-        from src.tasks.classify import classify_scene_task, classify_style_task
+        from src.tasks.classify import (
+            classify_scene_task,
+            classify_style_task,
+            analyse_interior_task,
+            analyse_condition_task,
+        )
 
         for image_url in request.image_urls:
             image_tasks: dict[str, str] = {}
@@ -102,6 +107,20 @@ async def submit_job(request: JobSubmitRequest):
                     countdown=0,
                 )
                 image_tasks["style"] = result.id
+
+            if "interior" in request.tasks:
+                result = analyse_interior_task.apply_async(
+                    args=[image_url, request.property_id, job_id],
+                    countdown=0,
+                )
+                image_tasks["interior"] = result.id
+
+            if "condition" in request.tasks:
+                result = analyse_condition_task.apply_async(
+                    args=[image_url, request.property_id, job_id],
+                    countdown=0,
+                )
+                image_tasks["condition"] = result.id
 
             task_tracking[image_url] = image_tasks
 
