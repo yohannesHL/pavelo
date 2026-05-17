@@ -612,6 +612,8 @@ model WebhookConfig {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  deliveries WebhookDelivery[]
+
   @@index([agencyId])
   @@index([active])
   @@map("webhook_configs")
@@ -621,6 +623,7 @@ model WebhookConfig {
 model WebhookDelivery {
   id           String   @id @default(uuid()) @db.Uuid
   webhookId    String   @map("webhook_id") @db.Uuid
+  webhook      WebhookConfig @relation(fields: [webhookId], references: [id], onDelete: Cascade)
   event        String
   payload      Json
   

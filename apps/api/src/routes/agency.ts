@@ -357,9 +357,15 @@ export const agencyRouter = router({
         return acc;
       }, {} as Record<string, number>);
 
-      // Feedback aggregation
+      // Feedback aggregation — scoped to agency members
+      const agencyMembers = await prisma.agencyMember.findMany({
+        where: { agencyId: input.agencyId },
+        select: { userId: true },
+      });
+      const memberUserIds = agencyMembers.map((m) => m.userId);
+
       const feedbacks = await prisma.feedback.findMany({
-        where: { createdAt: { gte: startDate, lte: endDate } },
+        where: { createdAt: { gte: startDate, lte: endDate }, userId: { in: memberUserIds } },
       });
 
       const thumbsUp = feedbacks.filter((f) => f.rating >= 4).length;
@@ -412,6 +418,9 @@ export const agencyRouter = router({
       propertiesDiscussed: z.array(z.string()).optional(),
     }))
     .mutation(async ({ input, ctx }) => {
+      // Verify the requesting user belongs to this agency
+      await verifyAgencyMember(ctx.userId, input.agencyId);
+
       const handover = await prisma.handover.create({
         data: {
           agencyId: input.agencyId,
@@ -493,6 +502,16 @@ export const agencyRouter = router({
       return prisma.webhookConfig.findMany({
         where: { agencyId: input.agencyId },
         orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          agencyId: true,
+          url: true,
+          events: true,
+          active: true,
+          createdAt: true,
+          updatedAt: true,
+          // secret is intentionally excluded — never expose webhook secrets
+        },
       });
     }),
 
@@ -656,12 +675,22 @@ export const agencyRouter = router({
   /** List feedback (for analytics/export) */
   listFeedback: protectedProcedure
     .input(z.object({
+      agencyId: z.string().uuid(),
       limit: z.number().min(1).max(500).default(100),
       ratingFilter: z.number().int().min(1).max(5).optional(),
       format: z.enum(["json", "jsonl"]).default("json"),
     }))
-    .query(async ({ input }) => {
-      const where: any = {};
+    .query(async ({ input, ctx }) => {
+      // Verify membership and scope to agency tenant
+      await verifyAgencyMember(ctx.userId, input.agencyId);
+
+      const agencyMembers = await prisma.agencyMember.findMany({
+        where: { agencyId: input.agencyId },
+        select: { userId: true },
+      });
+      const memberUserIds = agencyMembers.map((m) => m.userId);
+
+      const where: any = { userId: { in: memberUserIds } };
       if (input.ratingFilter) where.rating = input.ratingFilter;
 
       const feedbacks = await prisma.feedback.findMany({

@@ -113,15 +113,73 @@ export const billingRouter = router({
   /** Handle Stripe webhook (called from REST endpoint) */
   handleStripeEvent: publicProcedure
     .input(z.object({
-      type: z.string(),
-      data: z.record(z.unknown()),
+      rawBody: z.string(),
+      signature: z.string(),
     }))
     .mutation(async ({ input }) => {
-      const { type, data } = input;
+      const { rawBody, signature } = input;
+      const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+      if (!endpointSecret) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Stripe webhook secret not configured",
+        });
+      }
+
+      // Verify the Stripe webhook signature
+      let event: { type: string; data: { object: Record<string, unknown> } };
+      try {
+        // Use Stripe's signature verification algorithm:
+        // Compare HMAC-SHA256(endpointSecret, timestamp.rawBody) with provided signatures
+        const crypto = await import("node:crypto");
+        const parts = signature.split(",");
+        const timestampPart = parts.find((p) => p.startsWith("t="));
+        const sigParts = parts.filter((p) => p.startsWith("v1="));
+
+        if (!timestampPart || sigParts.length === 0) {
+          throw new Error("Invalid signature format");
+        }
+
+        const timestamp = timestampPart.slice(2);
+        const signedPayload = `${timestamp}.${rawBody}`;
+        const expectedSig = crypto
+          .createHmac("sha256", endpointSecret)
+          .update(signedPayload)
+          .digest("hex");
+
+        const isValid = sigParts.some((s) => {
+          const sig = s.slice(3); // strip "v1="
+          return crypto.timingSafeEqual(
+            Buffer.from(expectedSig, "hex"),
+            Buffer.from(sig, "hex")
+          );
+        });
+
+        if (!isValid) {
+          throw new Error("Signature verification failed");
+        }
+
+        // Check timestamp tolerance (5 minutes)
+        const eventTime = parseInt(timestamp, 10);
+        const now = Math.floor(Date.now() / 1000);
+        if (Math.abs(now - eventTime) > 300) {
+          throw new Error("Webhook timestamp too old");
+        }
+
+        event = JSON.parse(rawBody);
+      } catch (err: any) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: `Stripe webhook signature verification failed: ${err.message}`,
+        });
+      }
+
+      const { type, data } = event;
 
       switch (type) {
         case "invoice.paid": {
-          const agencyId = (data as any).metadata?.agencyId;
+          const agencyId = (data.object as any).metadata?.agencyId;
           if (agencyId) {
             await prisma.subscription.updateMany({
               where: { agencyId },
@@ -132,8 +190,8 @@ export const billingRouter = router({
         }
 
         case "customer.subscription.updated": {
-          const agencyId = (data as any).metadata?.agencyId;
-          const status = (data as any).status;
+          const agencyId = (data.object as any).metadata?.agencyId;
+          const status = (data.object as any).status;
           if (agencyId) {
             await prisma.subscription.updateMany({
               where: { agencyId },
@@ -146,7 +204,7 @@ export const billingRouter = router({
         }
 
         case "customer.subscription.deleted": {
-          const agencyId = (data as any).metadata?.agencyId;
+          const agencyId = (data.object as any).metadata?.agencyId;
           if (agencyId) {
             await prisma.subscription.updateMany({
               where: { agencyId },
@@ -164,14 +222,22 @@ export const billingRouter = router({
       return { received: true };
     }),
 
-  /** Record usage (voice minutes) */
+  /** Record usage (voice minutes) — admin/agent only */
   recordUsage: protectedProcedure
     .input(z.object({
       agencyId: z.string().uuid(),
       voiceMinutes: z.number().min(0).optional(),
       conversations: z.number().min(0).optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      // Only agency admins or agents can record usage
+      const member = await prisma.agencyMember.findFirst({
+        where: { userId: ctx.userId, agencyId: input.agencyId, role: { in: ["admin", "agent"] } },
+      });
+      if (!member) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Only admins or agents can record usage" });
+      }
+
       const updates: any = {};
       if (input.voiceMinutes) {
         updates.voiceMinutes = { increment: input.voiceMinutes };
