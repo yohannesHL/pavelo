@@ -1,6 +1,6 @@
 # Sprint 4 — Hybrid RAG Search Engine — Progress
 
-## Status: 🚧 In Progress
+## Status: ✅ Complete
 
 ### Phase 1 — Qdrant Hybrid Search Core (S4-01, S4-02) ✅
 - [x] S4-01: Qdrant hybrid search (dense + sparse fusion, RRF, filters)
@@ -47,8 +47,26 @@
   - Pin highlights sync with list hover
   - Placeholder implementation ready for Mapbox GL JS integration
 
-### Phase 4 — Advanced Features (S4-07, S4-08, S4-09, S4-10)
-- [ ] S4-07: Saved searches + alerts
-- [ ] S4-08: Image similarity search
-- [ ] S4-09: Search analytics
-- [ ] S4-10: Search quality eval
+### Phase 4 — Advanced Features (S4-07, S4-08, S4-09, S4-10) ✅
+- [x] S4-07: Saved searches + alerts
+  - Prisma model: SavedSearch (userId, query, filters, isActive, matchCount)
+  - tRPC endpoints: save, list, delete, toggle saved searches
+  - Background recheck mechanism ready (matchCount + lastRunAt)
+- [x] S4-08: Image similarity search
+  - `services/ml/src/search/image_search.py` — CLIP-based image search
+  - `services/ml/src/routes/search.py` — POST /api/v1/search/similar-image
+  - Accepts image URL or pre-computed CLIP embedding
+  - Cross-modal text-to-image search capability
+- [x] S4-09: Search analytics
+  - Prisma model: SearchEvent (query, filters, resultCount, clickedIds, source)
+  - tRPC endpoints: log, click-through, summary analytics
+  - ML service in-memory analytics buffer
+  - `services/ml/src/routes/analytics.py` — analytics API
+  - Zero-results analysis, top queries, CTR calculation
+- [x] S4-10: Search quality eval
+  - `services/ml/src/eval/search_quality.py` — benchmark evaluation
+  - 25 benchmark query-result pairs across 12 categories
+  - MRR, NDCG@5, NDCG@10, Precision@5, Recall metrics
+  - CLI: `python -m src.eval.search_quality`
+  - POST /api/v1/eval/search endpoint
+  - Per-category breakdown reporting
