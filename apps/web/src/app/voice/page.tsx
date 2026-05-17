@@ -22,10 +22,12 @@ import {
   RecordingConsent,
 } from "@/components/voice";
 import { useAuthStore } from "@/stores/auth-store";
+import { useTranslation } from "@/i18n";
 
 export default function VoicePage() {
   const router = useRouter();
   const { user, initialize } = useAuthStore();
+  const { t } = useTranslation();
   const [language, setLanguage] = useState("en");
   const [recordingConsent, setRecordingConsent] = useState(false);
   const {
@@ -80,7 +82,7 @@ export default function VoicePage() {
             }
             className="text-xs text-white/40 hover:text-white/70 transition-colors"
           >
-            View in chat →
+            {t("voice.viewInChat")} →
           </button>
         )}
       </div>
@@ -97,12 +99,10 @@ export default function VoicePage() {
                 className="text-2xl sm:text-3xl font-bold text-white mb-2"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                Talk to Xara
+                {t("voice.title")}
               </h1>
               <p className="text-white/50 text-sm sm:text-base max-w-md">
-                Start a voice conversation with your AI estate agent.
-                Ask about properties, neighborhoods, or get personalized
-                recommendations.
+                {t("voice.subtitle")}
               </p>
             </div>
 
@@ -124,7 +124,7 @@ export default function VoicePage() {
               aria-label="Start voice session"
             >
               <Phone className="h-5 w-5" />
-              {user ? "Start Call" : "Sign in to start"}
+              {user ? t("voice.startCall") : t("voice.signInRequired")}
             </button>
 
             {/* Language & consent options */}
@@ -148,7 +148,7 @@ export default function VoicePage() {
                 <a href="/auth/login" className="text-[#2E86AB] hover:underline">
                   Sign in
                 </a>{" "}
-                to use voice mode
+                {t("voice.signInRequired")}
               </p>
             )}
           </div>
@@ -202,7 +202,7 @@ export default function VoicePage() {
                   transition-all duration-200
                 "
               >
-                Try Again
+                {t("voice.tryAgain")}
               </button>
             </div>
           </div>

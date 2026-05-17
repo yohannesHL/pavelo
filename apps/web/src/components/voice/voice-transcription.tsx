@@ -12,6 +12,7 @@
 
 import { useEffect, useRef } from "react";
 import type { TranscriptEntry } from "@/hooks/use-voice-session";
+import { useTranslation } from "@/i18n";
 
 interface VoiceTranscriptionProps {
   transcripts: TranscriptEntry[];
@@ -25,6 +26,7 @@ export function VoiceTranscription({
   className = "",
 }: VoiceTranscriptionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -38,7 +40,7 @@ export function VoiceTranscription({
       <div
         className={`flex items-center justify-center text-white/40 text-sm ${className}`}
       >
-        <p>Transcription will appear here...</p>
+        <p>{t("voice.transcriptionPlaceholder")}</p>
       </div>
     );
   }

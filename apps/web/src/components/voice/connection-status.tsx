@@ -9,6 +9,7 @@
 
 import { Wifi, WifiOff, Loader2, AlertCircle } from "lucide-react";
 import type { VoiceConnectionState } from "@/hooks/use-voice-session";
+import { useTranslation } from "@/i18n";
 
 interface ConnectionStatusProps {
   state: VoiceConnectionState;
@@ -69,8 +70,18 @@ export function ConnectionStatus({
   error,
   className = "",
 }: ConnectionStatusProps) {
+  const { t } = useTranslation();
+
+  // Map connection states to i18n keys where available
+  const stateLabels: Partial<Record<VoiceConnectionState, string>> = {
+    connected: t("voice.connected"),
+    connecting: t("voice.connecting"),
+    disconnected: t("voice.disconnected"),
+  };
+
   const config = STATE_CONFIG[state];
   const Icon = config.icon;
+  const displayLabel = stateLabels[state] || config.label;
   const isAnimating = state === "connecting" || state === "requesting" || state === "disconnecting";
 
   return (
@@ -82,7 +93,7 @@ export function ConnectionStatus({
         ${className}
       `}
       role="status"
-      aria-label={error || config.label}
+      aria-label={error || displayLabel}
     >
       <Icon
         className={`h-3.5 w-3.5 ${config.color} ${
@@ -90,7 +101,7 @@ export function ConnectionStatus({
         }`}
       />
       <span className={`text-xs font-medium ${config.color}`}>
-        {error ? error.slice(0, 50) : config.label}
+        {error ? error.slice(0, 50) : displayLabel}
       </span>
     </div>
   );

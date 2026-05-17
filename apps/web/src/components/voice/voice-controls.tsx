@@ -15,6 +15,7 @@
 
 import { Mic, MicOff, PhoneOff, Volume2 } from "lucide-react";
 import type { VoiceConnectionState } from "@/hooks/use-voice-session";
+import { useTranslation } from "@/i18n";
 
 interface VoiceControlsProps {
   connectionState: VoiceConnectionState;
@@ -41,6 +42,7 @@ export function VoiceControls({
   durationSecs,
   className = "",
 }: VoiceControlsProps) {
+  const { t } = useTranslation();
   const isConnected = connectionState === "connected";
   const isConnecting =
     connectionState === "connecting" || connectionState === "requesting";
@@ -102,8 +104,8 @@ export function VoiceControls({
               : "bg-white/10 hover:bg-white/20 border border-white/20"
           }
         `}
-        aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
-        title={isMuted ? "Unmute" : "Mute"}
+        aria-label={isMuted ? t("voice.unmute") : t("voice.mute")}
+        title={isMuted ? t("voice.unmute") : t("voice.mute")}
       >
         {isMuted ? (
           <MicOff className="h-6 w-6 text-white" />
@@ -125,8 +127,8 @@ export function VoiceControls({
           focus:outline-none focus:ring-2 focus:ring-red-400/50 focus:ring-offset-2 focus:ring-offset-transparent
           disabled:opacity-40 disabled:cursor-not-allowed
         `}
-        aria-label="End voice session"
-        title="End call"
+        aria-label={t("voice.endCall")}
+        title={t("voice.endCall")}
       >
         <PhoneOff className="h-6 w-6 text-white" />
       </button>

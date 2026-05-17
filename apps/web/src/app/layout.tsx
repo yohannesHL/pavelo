@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { I18nProvider } from "@/i18n";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,6 +40,7 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased">
         <AuthProvider>
+          <I18nProvider>
           <div className="flex min-h-screen flex-col">
             <header className="border-b border-[var(--border)] px-6 py-4">
               <nav className="mx-auto flex max-w-7xl items-center justify-between">
@@ -81,6 +83,7 @@ export default function RootLayout({
             </header>
             <main className="flex-1">{children}</main>
           </div>
+        </I18nProvider>
         </AuthProvider>
       </body>
     </html>

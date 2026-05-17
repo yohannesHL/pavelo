@@ -8,6 +8,7 @@
  */
 
 import { Shield } from "lucide-react";
+import { useTranslation } from "@/i18n";
 
 interface RecordingConsentProps {
   checked: boolean;
@@ -20,6 +21,8 @@ export function RecordingConsent({
   onChange,
   className = "",
 }: RecordingConsentProps) {
+  const { t } = useTranslation();
+
   return (
     <label
       className={`
@@ -64,8 +67,7 @@ export function RecordingConsent({
       <div className="flex items-start gap-2">
         <Shield className="h-4 w-4 shrink-0 mt-0.5 text-white/30" />
         <span className="text-xs leading-relaxed">
-          I consent to session recording for quality improvement.
-          No audio is stored — only text transcripts may be retained.
+          {t("voice.recordingConsent")}
         </span>
       </div>
     </label>

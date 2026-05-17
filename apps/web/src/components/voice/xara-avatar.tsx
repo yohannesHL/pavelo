@@ -12,6 +12,7 @@
  */
 
 import type { AgentSpeakingState } from "@/hooks/use-voice-session";
+import { useTranslation } from "@/i18n";
 
 interface XaraAvatarProps {
   state: AgentSpeakingState;
@@ -44,6 +45,7 @@ export function XaraAvatar({
   size = "lg",
   className = "",
 }: XaraAvatarProps) {
+  const { t } = useTranslation();
   const isSpeaking = state === "speaking";
   const isThinking = state === "thinking";
   const isListening = state === "listening";
@@ -158,7 +160,7 @@ export function XaraAvatar({
             }
           `}
         >
-          {state}
+          {t(`voice.${state}` as "voice.listening" | "voice.thinking" | "voice.speaking")}
         </span>
       </div>
     </div>
