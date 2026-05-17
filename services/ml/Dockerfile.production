@@ -1,0 +1,34 @@
+# --- Stage 1: Build dependencies ---
+FROM python:3.11-slim AS builder
+WORKDIR /app
+
+RUN pip install --no-cache-dir poetry
+
+COPY services/ml/pyproject.toml ./
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-dev --no-interaction --no-ansi 2>/dev/null || \
+    pip install --no-cache-dir fastapi uvicorn structlog pydantic httpx openai qdrant-client torch transformers pillow
+
+# --- Stage 2: Production Runtime ---
+FROM python:3.11-slim AS runner
+WORKDIR /app
+
+RUN groupadd --system --gid 1001 ml && \
+    useradd --system --uid 1001 --gid ml ml
+
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+COPY services/ml/src ./src
+
+ENV PYTHONUNBUFFERED=1
+ENV ML_PORT=8001
+
+USER ml
+
+EXPOSE 8001
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')" || exit 1
+
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8001"]
