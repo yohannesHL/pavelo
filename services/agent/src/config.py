@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     persona_tone: str = "professional"  # professional, friendly, casual
     persona_formality: str = "warm"  # formal, warm, casual
 
+    # Voice pipeline (S6-03)
+    livekit_url: str = "ws://localhost:7880"
+    livekit_api_key: str = "devkey"
+    livekit_api_secret: str = "secret"
+    deepgram_api_key: str = ""
+    cartesia_api_key: str = ""
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

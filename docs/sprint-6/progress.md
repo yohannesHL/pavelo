@@ -8,8 +8,8 @@
 - [x] S6-07: Voice session management (DB model, session limits, state tracking)
 
 ### Phase 2 — Pipecat Voice Pipeline (S6-03, S6-04)
-- [ ] S6-03: Pipecat pipeline (VAD → STT → Agent → TTS, LiveKit transport)
-- [ ] S6-04: VAD integration (Silero VAD, barge-in, configurable thresholds)
+- [x] S6-03: Pipecat pipeline (VAD → STT → Agent → TTS, LiveKit transport)
+- [x] S6-04: VAD integration (Silero VAD, barge-in, configurable thresholds)
 
 ### Phase 3 — Voice UI & Transcription (S6-05, S6-06)
 - [ ] S6-05: Voice session UI (waveform, transcription overlay, controls, Xara avatar)
