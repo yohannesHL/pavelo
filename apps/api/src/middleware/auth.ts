@@ -1,4 +1,8 @@
 import { FastifyRequest, FastifyReply } from "fastify";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 /**
  * JWT validation middleware
@@ -26,7 +30,25 @@ export async function authMiddleware(
     });
   }
 
-  // TODO: Verify JWT with Supabase in Sprint 1 Phase 3
-  // For now, just check token exists
-  (request as any).userId = "placeholder";
+  try {
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (error || !data.user) {
+      return reply.status(401).send({
+        error: "Unauthorized",
+        message: "Invalid or expired token",
+      });
+    }
+
+    // Attach user to request
+    (request as any).userId = data.user.id;
+    (request as any).userEmail = data.user.email;
+    (request as any).userRole = data.user.user_metadata?.role || "buyer";
+  } catch {
+    return reply.status(401).send({
+      error: "Unauthorized",
+      message: "Token verification failed",
+    });
+  }
 }
