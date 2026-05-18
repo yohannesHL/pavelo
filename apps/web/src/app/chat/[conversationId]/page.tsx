@@ -36,14 +36,30 @@ export default function ConversationPage() {
 
   const voice = useVoiceSession();
 
-  // Load conversation and join room
+  // Disconnect voice when switching conversations (#67)
   useEffect(() => {
     if (conversationId && conversationId !== currentConvId) {
+      if (voiceActive) {
+        voice.disconnect();
+        setVoiceActive(false);
+      }
       clearMessages();
       loadMessages(conversationId);
       joinRoom(conversationId);
     }
-  }, [conversationId, currentConvId, clearMessages, loadMessages, joinRoom]);
+  }, [conversationId, currentConvId, voiceActive, voice, clearMessages, loadMessages, joinRoom, setVoiceActive]);
+
+  // Clean up voice session on unmount (#66)
+  useEffect(() => {
+    return () => {
+      const store = useChatStore.getState();
+      if (store.voiceActive) {
+        voice.disconnect();
+        store.setVoiceActive(false);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Auto-connect voice if voiceActive was set before navigation (e.g. from ?voice=true)
   useEffect(() => {

@@ -80,7 +80,7 @@ export function InlineVoicePanel({
               <button
                 type="button"
                 onClick={onSwitchToText}
-                className="text-[10px] text-white/40 hover:text-white/70 transition-colors self-start"
+                className="text-[10px] text-white/40 hover:text-white/70 transition-colors self-start py-2 px-1"
               >
                 Switch to text →
               </button>
@@ -94,7 +94,7 @@ export function InlineVoicePanel({
                 onClick={onToggleMute}
                 disabled={!isConnected}
                 className={`
-                  flex h-10 w-10 items-center justify-center rounded-full
+                  flex h-11 w-11 items-center justify-center rounded-full
                   transition-all duration-200
                   disabled:opacity-40 disabled:cursor-not-allowed
                   ${
@@ -117,7 +117,7 @@ export function InlineVoicePanel({
                 type="button"
                 onClick={onEndCall}
                 disabled={!isConnected && !isConnecting}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#ef4444] hover:bg-[#dc2626] text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#ef4444] hover:bg-[#dc2626] text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="End voice session"
               >
                 <PhoneOff className="h-4 w-4" />
