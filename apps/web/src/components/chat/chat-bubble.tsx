@@ -14,6 +14,7 @@ import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { motion } from "framer-motion";
+import { Mic } from "lucide-react";
 import type { ChatMessage } from "@/stores/chat-store";
 
 interface ChatBubbleProps {
@@ -96,6 +97,11 @@ export const ChatBubble = memo(function ChatBubble({
           ${message.streaming ? "animate-pulse-subtle" : ""}
         `}
       >
+        {/* Voice source badge */}
+        {message.source === "voice" && (
+          <Mic className="absolute top-1.5 right-1.5 h-3 w-3 opacity-60" aria-label="Voice message" />
+        )}
+
         {isAgent ? (
           <div className="chat-markdown prose prose-sm max-w-none dark:prose-invert">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>

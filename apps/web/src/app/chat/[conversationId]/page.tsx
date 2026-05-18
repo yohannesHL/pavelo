@@ -3,12 +3,14 @@
 /**
  * /chat/[conversationId] — Active conversation page
  *
- * Loads conversation history and connects to WebSocket room.
+ * Loads conversation history, connects to WebSocket room,
+ * and integrates voice session for unified experience.
  */
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { useChatStore } from "@/stores/chat-store";
+import { useVoiceSession } from "@/hooks/use-voice-session";
 import { ChatMessageList } from "@/components/chat/chat-message-list";
 import { ChatInput } from "@/components/chat/chat-input";
 
@@ -21,11 +23,18 @@ export default function ConversationPage() {
     isAgentTyping,
     connectionStatus,
     conversationId: currentConvId,
+    voiceActive,
+    interimTranscript,
     sendMessage,
     joinRoom,
     loadMessages,
     clearMessages,
+    setVoiceActive,
+    addVoiceTranscript,
+    setInterimTranscript,
   } = useChatStore();
+
+  const voice = useVoiceSession();
 
   // Load conversation and join room
   useEffect(() => {
@@ -35,6 +44,45 @@ export default function ConversationPage() {
       joinRoom(conversationId);
     }
   }, [conversationId, currentConvId, clearMessages, loadMessages, joinRoom]);
+
+  // Auto-connect voice if voiceActive was set before navigation (e.g. from ?voice=true)
+  useEffect(() => {
+    if (voiceActive && voice.connectionState === "idle" && conversationId) {
+      voice.connect({ conversationId, language: "en", recordingConsent: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voiceActive, conversationId]);
+
+  // Voice transcripts → chat bubbles
+  const prevTranscriptCount = useRef(0);
+  useEffect(() => {
+    const newTranscripts = voice.transcripts.slice(prevTranscriptCount.current);
+    newTranscripts.forEach((t) => {
+      addVoiceTranscript({ id: t.id, text: t.text, speaker: t.speaker });
+    });
+    prevTranscriptCount.current = voice.transcripts.length;
+  }, [voice.transcripts, addVoiceTranscript]);
+
+  // Interim transcript sync
+  useEffect(() => {
+    setInterimTranscript(voice.currentInterim || null);
+  }, [voice.currentInterim, setInterimTranscript]);
+
+  // Voice toggle handler
+  const handleVoiceToggle = useCallback(() => {
+    if (voiceActive) {
+      voice.disconnect();
+      setVoiceActive(false);
+    } else {
+      voice.connect({ conversationId, language: "en", recordingConsent: true });
+      setVoiceActive(true);
+    }
+  }, [voiceActive, voice, conversationId, setVoiceActive]);
+
+  const handleEndVoice = useCallback(() => {
+    voice.disconnect();
+    setVoiceActive(false);
+  }, [voice, setVoiceActive]);
 
   // Listen for suggestion clicks
   useEffect(() => {
@@ -73,12 +121,26 @@ export default function ConversationPage() {
       )}
 
       {/* Messages */}
-      <ChatMessageList messages={messages} isAgentTyping={isAgentTyping} />
+      <ChatMessageList
+        messages={messages}
+        isAgentTyping={isAgentTyping}
+        interimTranscript={interimTranscript}
+      />
 
       {/* Input */}
       <ChatInput
         onSend={handleSend}
         disabled={connectionStatus !== "connected"}
+        voiceActive={voiceActive}
+        onVoiceToggle={handleVoiceToggle}
+        voiceDisabled={connectionStatus !== "connected"}
+        voiceConnectionState={voice.connectionState}
+        isMuted={voice.isMuted}
+        onToggleMute={voice.toggleMute}
+        audioLevel={voice.audioLevel}
+        agentAudioLevel={voice.agentAudioLevel}
+        agentState={voice.agentState}
+        onEndVoice={handleEndVoice}
       />
     </>
   );

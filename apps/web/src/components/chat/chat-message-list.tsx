@@ -20,11 +20,13 @@ import type { ChatMessage } from "@/stores/chat-store";
 interface ChatMessageListProps {
   messages: ChatMessage[];
   isAgentTyping: boolean;
+  interimTranscript?: string | null;
 }
 
 export function ChatMessageList({
   messages,
   isAgentTyping,
+  interimTranscript,
 }: ChatMessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -122,6 +124,15 @@ export function ChatMessageList({
         <AnimatePresence>
           {isAgentTyping && <TypingIndicator />}
         </AnimatePresence>
+
+        {/* Interim voice transcript */}
+        {interimTranscript && (
+          <div className="flex gap-3 px-4 py-2 flex-row-reverse">
+            <div className="max-w-[75%] rounded-2xl rounded-br-md px-4 py-2.5 text-sm leading-relaxed bg-[var(--color-accent)]/30 text-[var(--foreground)] italic opacity-50">
+              <p className="whitespace-pre-wrap">{interimTranscript}</p>
+            </div>
+          </div>
+        )}
 
         <div ref={bottomRef} />
       </div>
