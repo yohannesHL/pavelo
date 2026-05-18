@@ -51,7 +51,7 @@ export const voiceRouter = router({
   createSession: protectedProcedure
     .input(CreateSessionInput)
     .mutation(async ({ input, ctx }) => {
-      // Enforce 1 active session per user
+      // Auto-end any stale active session for this user
       const existingActive = await prisma.voiceSession.findFirst({
         where: {
           userId: ctx.userId,
@@ -60,11 +60,20 @@ export const voiceRouter = router({
       });
 
       if (existingActive) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message:
-            "You already have an active voice session. Please end it before starting a new one.",
+        const endedAt = new Date();
+        const durationSecs = Math.floor(
+          (endedAt.getTime() - existingActive.startedAt.getTime()) / 1000
+        );
+        await prisma.voiceSession.update({
+          where: { id: existingActive.id },
+          data: { status: "ended", endedAt, durationSecs },
         });
+        try {
+          await deleteRoom(existingActive.roomName);
+        } catch {
+          // Room may already be gone
+        }
+        console.log(`Auto-ended stale voice session ${existingActive.id} for user ${ctx.userId}`);
       }
 
       // Generate room name
