@@ -68,12 +68,13 @@ export function InlineVoicePanel({
                   Connecting...
                 </p>
               ) : (
-                <VoiceWaveform
-                  audioLevel={agentState === "speaking" ? agentAudioLevel : audioLevel}
-                  isActive={isConnected}
-                  barCount={24}
-                  className="h-10"
-                />
+                <div className="h-10 overflow-hidden">
+                  <VoiceWaveform
+                    audioLevel={agentState === "speaking" ? agentAudioLevel : audioLevel}
+                    isActive={isConnected}
+                    barCount={24}
+                  />
+                </div>
               )}
 
               <button
