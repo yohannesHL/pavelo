@@ -22,9 +22,14 @@ export function getSupabaseAdmin(): SupabaseClient {
   return _supabaseAdmin;
 }
 
-// Backward-compatible named export (lazy getter)
-export const supabaseAdmin = new Proxy({} as SupabaseClient, {
-  get(_target, prop) {
-    return (getSupabaseAdmin() as Record<string | symbol, unknown>)[prop];
+// Backward-compatible named export — lazy Proxy that delegates to the real client
+export const supabaseAdmin: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_target, prop, receiver) {
+    const real = getSupabaseAdmin();
+    const value = Reflect.get(real, prop, real);
+    if (typeof value === "function") {
+      return value.bind(real);
+    }
+    return value;
   },
 });

@@ -12,8 +12,14 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
     database_url: str = "postgresql://postgres:postgres@localhost:5432/pavelo"
     qdrant_url: str = "http://localhost:6333"
+
+    # LLM — OpenAI direct or OpenRouter (factory decides based on which key is set)
     openai_api_key: str = ""
-    openai_model: str = "gpt-4o-mini"
+    openrouter_api_key: str = ""
+    llm_model: str = ""  # Override auto-detected default model
+    openai_model: str = "gpt-4o-mini"  # Legacy compat
+
+    # Memory
     mem0_api_key: str = ""
     mem0_org_id: str = ""
     api_gateway_url: str = "http://localhost:4000"
@@ -30,6 +36,11 @@ class Settings(BaseSettings):
     livekit_api_secret: str = "secret"
     deepgram_api_key: str = ""
     cartesia_api_key: str = ""
+
+    # STT/TTS model overrides (used by provider factory)
+    stt_model: str = ""
+    tts_model: str = ""
+    tts_voice: str = ""
 
     class Config:
         env_file = ".env"

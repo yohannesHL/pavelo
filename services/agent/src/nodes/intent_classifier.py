@@ -21,10 +21,11 @@ from __future__ import annotations
 import json
 
 import structlog
-from openai import AsyncOpenAI
 
 from src.config import settings
 from src.state import AgentState, IntentType
+from src.providers.factory import get_llm
+from src.providers.base import LLMMessage
 
 logger = structlog.get_logger()
 
@@ -98,12 +99,12 @@ CLASSIFY_FUNCTION = {
 
 
 async def _classify_with_llm(message: str, context: str = "") -> tuple[str, dict]:
-    """Classify intent using OpenAI function calling.
+    """Classify intent using LLM function calling.
 
     Returns:
         Tuple of (intent, extracted_params)
     """
-    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    llm = get_llm()
 
     system_prompt = """You are an intent classifier for a UK real estate AI assistant called Xara.
 Classify the user's message into one of these intents:
@@ -122,25 +123,22 @@ Classify the user's message into one of these intents:
 Also extract any search parameters if present (prices, bedrooms, area, etc).
 """
 
-    messages = [
-        {"role": "system", "content": system_prompt},
-    ]
+    messages = [LLMMessage(role="system", content=system_prompt)]
     if context:
-        messages.append({"role": "system", "content": f"Recent conversation context:\n{context}"})
-    messages.append({"role": "user", "content": message})
+        messages.append(LLMMessage(role="system", content=f"Recent conversation context:\n{context}"))
+    messages.append(LLMMessage(role="user", content=message))
 
-    response = await client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=messages,
+    result = await llm.complete_with_tools(
+        messages,
         tools=[{"type": "function", "function": CLASSIFY_FUNCTION}],
-        tool_choice={"type": "function", "function": {"name": "classify_intent"}},
         temperature=0,
+        tool_choice={"type": "function", "function": {"name": "classify_intent"}},
     )
 
-    tool_calls = response.choices[0].message.tool_calls
-    if tool_calls and tool_calls[0].function.arguments:
-        result = json.loads(tool_calls[0].function.arguments)
-        return result.get("intent", "general_question"), result.get("extracted_params", {})
+    tool_calls = result.get("tool_calls", [])
+    if tool_calls:
+        parsed = json.loads(tool_calls[0]["arguments"])
+        return parsed.get("intent", "general_question"), parsed.get("extracted_params", {})
 
     return "general_question", {}
 
@@ -184,27 +182,26 @@ async def intent_classifier_node(state: AgentState) -> dict:
     )
 
     try:
-        if settings.openai_api_key:
-            intent, extracted_params = await _classify_with_llm(last_message, context)
+        intent, extracted_params = await _classify_with_llm(last_message, context)
 
-            # Merge extracted params into active search params
-            updated_params = {**state.active_search_params}
-            if extracted_params:
-                for k, v in extracted_params.items():
-                    if v is not None:
-                        updated_params[k] = v
+        # Merge extracted params into active search params
+        updated_params = {**state.active_search_params}
+        if extracted_params:
+            for k, v in extracted_params.items():
+                if v is not None:
+                    updated_params[k] = v
 
-            logger.info(
-                "intent_classified_llm",
-                intent=intent,
-                params=extracted_params,
-                user_id=state.user_id,
-            )
+        logger.info(
+            "intent_classified_llm",
+            intent=intent,
+            params=extracted_params,
+            user_id=state.user_id,
+        )
 
-            return {
-                "intent": intent,
-                "active_search_params": updated_params if extracted_params else state.active_search_params,
-            }
+        return {
+            "intent": intent,
+            "active_search_params": updated_params if extracted_params else state.active_search_params,
+        }
     except Exception as e:
         logger.warning("intent_classifier_llm_fallback", error=str(e))
 
