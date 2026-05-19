@@ -62,6 +62,7 @@ interface ChatState {
   // Current conversation
   conversationId: string | null;
   messages: ChatMessage[];
+  pendingMessages: string[];
   isAgentTyping: boolean;
   streamingContent: string;
 
@@ -128,11 +129,22 @@ export const useChatStore = create<ChatState>((set, get) => {
     }
   }
 
+  function flushPendingMessages() {
+    const { ws, connectionStatus, conversationId, pendingMessages } = get();
+    if (!ws || connectionStatus !== "connected" || !conversationId || pendingMessages.length === 0) return;
+
+    for (const content of pendingMessages) {
+      ws.send(JSON.stringify({ type: "user_message", conversationId, content }));
+    }
+    set({ pendingMessages: [] });
+  }
+
   return {
     ws: null,
     connectionStatus: "disconnected",
     conversationId: null,
     messages: [],
+    pendingMessages: [],
     isAgentTyping: false,
     streamingContent: "",
     voiceActive: false,
@@ -181,6 +193,9 @@ export const useChatStore = create<ChatState>((set, get) => {
               })
             );
           }
+
+          // Flush any messages queued while WS was connecting
+          flushPendingMessages();
         };
 
         ws.onmessage = (event) => {
@@ -374,25 +389,28 @@ export const useChatStore = create<ChatState>((set, get) => {
         ws.send(
           JSON.stringify({ type: "join_room", conversationId })
         );
+        // Flush any messages queued before room was joined
+        flushPendingMessages();
       }
     },
 
     sendMessage: (content: string) => {
-      const { ws, connectionStatus, conversationId, messages } = get();
+      const { ws, connectionStatus, conversationId } = get();
 
-      if (!ws || connectionStatus !== "connected" || !conversationId) {
-        return;
-      }
-
-      // Optimistic add
+      // Optimistic add always so user sees their message immediately
       const optimisticMsg: ChatMessage = {
         id: `local-${Date.now()}`,
         role: "user",
         content,
         createdAt: new Date().toISOString(),
       };
+      set({ messages: [...get().messages, optimisticMsg] });
 
-      set({ messages: [...messages, optimisticMsg] });
+      if (!ws || connectionStatus !== "connected" || !conversationId) {
+        // Queue for delivery once WS is ready
+        set({ pendingMessages: [...get().pendingMessages, content] });
+        return;
+      }
 
       ws.send(
         JSON.stringify({
