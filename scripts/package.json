@@ -1,0 +1,11 @@
+{
+  "name": "@pavelo/scripts",
+  "private": true,
+  "scripts": {
+    "scrape": "npx tsx scrape-rightmove.ts"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0",
+    "tsx": "^4.19.0"
+  }
+}
