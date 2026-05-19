@@ -13,6 +13,7 @@ import { savedPropertyRouter } from "./routes/saved-property.js";
 import { pushRouter } from "./routes/push.js";
 import { agencyRouter } from "./routes/agency.js";
 import { billingRouter } from "./routes/billing.js";
+import { ragSearch } from "./lib/rag-client.js";
 
 // --- Zod Schemas ---
 
@@ -137,116 +138,90 @@ export const appRouter = router({
       .query(async ({ input }) => {
         const { query, filters, topK, cursor, sortBy, excludeIds } = input;
 
-        // Call ML service hybrid search
-        const mlServiceUrl = process.env.ML_SERVICE_URL || "http://localhost:8001";
-
-        const searchBody: Record<string, unknown> = {
-          query,
-          top_k: topK + cursor + 1, // fetch enough for pagination
-          exclude_ids: excludeIds,
-        };
-
+        // Build RAG filters from structured filters
+        const ragFilters: Record<string, unknown> = {};
         if (filters) {
-          searchBody.filters = {
-            min_price: filters.minPrice,
-            max_price: filters.maxPrice,
-            min_bedrooms: filters.minBedrooms,
-            max_bedrooms: filters.maxBedrooms,
-            property_type: filters.propertyType,
-            city: filters.city,
-            postcode: filters.postcode,
-            status: filters.status,
-            latitude: filters.latitude,
-            longitude: filters.longitude,
-            radius_km: filters.radiusKm,
-          };
+          if (filters.minPrice || filters.maxPrice) {
+            ragFilters.price = {};
+            if (filters.minPrice) (ragFilters.price as Record<string, number>).gte = filters.minPrice;
+            if (filters.maxPrice) (ragFilters.price as Record<string, number>).lte = filters.maxPrice;
+          }
+          if (filters.minBedrooms) ragFilters.bedrooms = { gte: filters.minBedrooms };
+          if (filters.propertyType) ragFilters.property_type = filters.propertyType;
         }
 
         try {
-          const mlResponse = await fetch(`${mlServiceUrl}/api/v1/search/hybrid`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(searchBody),
+          const ragResponse = await ragSearch({
+            query,
+            limit: topK + cursor + 5, // fetch extra for pagination + dedup
+            minScore: 0.2,
+            filters: Object.keys(ragFilters).length > 0 ? ragFilters : undefined,
           });
 
-          if (!mlResponse.ok) {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: `ML service error: ${mlResponse.status}`,
-            });
+          // Extract unique property IDs from RAG results
+          const propertyScores = new Map<string, number>();
+          for (const r of ragResponse.results) {
+            if (!propertyScores.has(r.property_id)) {
+              propertyScores.set(r.property_id, r.score);
+            }
           }
 
-          const mlData = await mlResponse.json() as { results?: MLSearchResult[]; query?: string; filters_applied?: Record<string, unknown> };
-          const searchResults: MLSearchResult[] = mlData.results || [];
+          // Exclude specified IDs
+          if (excludeIds) {
+            for (const id of excludeIds) propertyScores.delete(id);
+          }
 
-          // Extract property IDs for hydration
-          const propertyIds = searchResults.map((r) => r.id);
+          const propertyIds = Array.from(propertyScores.keys());
 
-          // Hydrate from PostgreSQL
           if (propertyIds.length > 0) {
+            // Hydrate from Prisma
             const properties = await prisma.property.findMany({
-              where: {
-                id: { in: propertyIds },
-                deletedAt: null,
-              },
-              include: {
-                owner: { select: { id: true, name: true, email: true } },
-              },
+              where: { id: { in: propertyIds }, deletedAt: null },
+              include: { owner: { select: { id: true, name: true, email: true } } },
             });
 
-            // Create a lookup map
             const propertyMap = new Map(properties.map((p) => [p.id, p]));
 
-            // Merge search scores with full property data, preserving search order
-            let items = searchResults
-              .map((result) => {
-                const property = propertyMap.get(result.id);
+            // Merge with scores, preserving RAG relevance order
+            let items = propertyIds
+              .map((id) => {
+                const property = propertyMap.get(id);
                 if (!property) return null;
                 return {
                   ...property,
-                  searchScore: result.score,
-                  denseRank: result.dense_rank,
-                  sparseRank: result.sparse_rank,
+                  searchScore: propertyScores.get(id) ?? 0,
+                  relevanceScore: propertyScores.get(id) ?? 0,
+                  denseRank: null,
+                  sparseRank: null,
                 };
               })
               .filter(<T,>(v: T | null): v is T => v !== null);
 
-            // Apply sort if not relevance (relevance = search score order)
-            if (sortBy === "price_asc") {
-              items.sort((a, b) => a.price - b.price);
-            } else if (sortBy === "price_desc") {
-              items.sort((a, b) => b.price - a.price);
-            } else if (sortBy === "newest") {
-              items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-            } else if (sortBy === "bedrooms") {
-              items.sort((a, b) => b.bedrooms - a.bedrooms);
-            }
+            // Apply sort override
+            if (sortBy === "price_asc") items.sort((a, b) => a.price - b.price);
+            else if (sortBy === "price_desc") items.sort((a, b) => b.price - a.price);
+            else if (sortBy === "newest") items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            else if (sortBy === "bedrooms") items.sort((a, b) => b.bedrooms - a.bedrooms);
+            // else: relevance — keep RAG order
 
             // Paginate
             const paginatedItems = items.slice(cursor, cursor + topK);
-            const hasMore = items.length > cursor + topK;
 
             return {
               items: paginatedItems,
-              nextCursor: hasMore ? cursor + topK : null,
+              nextCursor: items.length > cursor + topK ? cursor + topK : null,
               total: items.length,
-              query: mlData.query,
-              filtersApplied: mlData.filters_applied || {},
+              query: ragResponse.query,
+              filtersApplied: ragFilters,
+              isAiRanked: true,
             };
           }
 
-          // No property IDs from ML service
-          return {
-            items: [],
-            nextCursor: null,
-            total: 0,
-            query: mlData.query,
-            filtersApplied: mlData.filters_applied || {},
-          };
+          return { items: [], nextCursor: null, total: 0, query, filtersApplied: {}, isAiRanked: true };
         } catch (error: unknown) {
           if (error instanceof TRPCError) throw error;
 
-          // Fallback to PostgreSQL text search if ML service is unavailable
+          // Fallback to PostgreSQL text search if RAG service is unavailable
           const where: Prisma.PropertyWhereInput = { deletedAt: null };
           if (query) {
             where.OR = [
@@ -271,11 +246,12 @@ export const appRouter = router({
           });
 
           return {
-            items: items.map((p) => ({ ...p, searchScore: null, denseRank: null, sparseRank: null })),
+            items: items.map((p) => ({ ...p, searchScore: null, relevanceScore: null, denseRank: null, sparseRank: null })),
             nextCursor: items.length === topK ? cursor + topK : null,
             total: await prisma.property.count({ where }),
             query,
             filtersApplied: {},
+            isAiRanked: false,
           };
         }
       }),
