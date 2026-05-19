@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
+
 // Mock property data — will connect to tRPC
 const MOCK_PROPERTY = {
   id: "1",
