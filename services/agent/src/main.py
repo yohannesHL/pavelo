@@ -16,6 +16,7 @@ from src.config import settings
 from src.graph import agent_graph
 from src.state import AgentState
 from src.nodes.response_generator import response_generator_stream, _build_visual_payloads
+from src.rag.router import router as rag_router
 
 logger = structlog.get_logger()
 
@@ -34,6 +35,9 @@ app = FastAPI(
     description="AI Agent orchestration service for Pavelo/Xara (chat + voice)",
     lifespan=lifespan,
 )
+
+# Mount RAG pipeline endpoints
+app.include_router(rag_router)
 
 # Track active voice pipelines
 _active_pipelines: dict[str, "VoicePipeline"] = {}
