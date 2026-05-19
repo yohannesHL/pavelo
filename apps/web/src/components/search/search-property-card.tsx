@@ -23,6 +23,7 @@ interface SearchPropertyCardProps {
     latitude?: number | null;
     longitude?: number | null;
     searchScore?: number | null;
+    relevanceScore?: number;
   };
   isActive?: boolean;
   onHover?: (id: string | null) => void;
@@ -207,6 +208,20 @@ export function SearchPropertyCard({
                   +{property.features.length - 3}
                 </Badge>
               )}
+            </div>
+          )}
+
+          {property.relevanceScore != null && property.relevanceScore > 0 && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="h-1 flex-1 overflow-hidden rounded-full bg-[var(--border)]">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary)]/60"
+                  style={{ width: `${Math.min(property.relevanceScore * 100, 100)}%` }}
+                />
+              </div>
+              <span className="text-[10px] text-[var(--muted-foreground)]">
+                {Math.round(property.relevanceScore * 100)}% match
+              </span>
             </div>
           )}
         </div>

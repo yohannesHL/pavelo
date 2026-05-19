@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { Sparkles } from "lucide-react";
 import { SearchBar } from "@/components/search/search-bar";
 import {
   FilterSidebar,
@@ -35,6 +36,7 @@ export default function PropertySearchPage() {
     total: totalCount,
     hasMore,
     isLoading,
+    isAiRanked,
     error,
     search,
     loadMore,
@@ -112,8 +114,21 @@ export default function PropertySearchPage() {
               onQueryChange={setQuery}
               onSearch={handleSearch}
               isLoading={isLoading}
+              showSuggestionChips={!hasSearched.current || properties.length === 0}
             />
           </div>
+          {/* AI-ranked indicator */}
+          {isAiRanked && properties.length > 0 && (
+            <div className="mx-auto mt-3 flex max-w-2xl items-center gap-2">
+              <div className="flex items-center gap-1.5 rounded-full bg-[var(--color-primary)]/10 px-3 py-1 text-xs font-medium text-[var(--color-primary)]">
+                <Sparkles className="h-3 w-3" />
+                AI-ranked results
+              </div>
+              <span className="text-xs text-[var(--muted-foreground)]">
+                Sorted by semantic relevance to your query
+              </span>
+            </div>
+          )}
           {/* Error banner */}
           {error && (
             <div className="mx-auto mt-3 max-w-2xl rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
@@ -162,6 +177,12 @@ export default function PropertySearchPage() {
                   <button onClick={() => updateFilters({ location: "" })} className="ml-1" aria-label="Remove location filter">×</button>
                 </Badge>
               )}
+              <button
+                onClick={resetFilters}
+                className="ml-2 text-xs font-medium text-[var(--color-primary)] hover:underline"
+              >
+                Clear all
+              </button>
             </div>
           )}
         </div>
@@ -215,18 +236,33 @@ export default function PropertySearchPage() {
                 />
               </div>
             ) : (
-              <SearchResultsGrid
-                properties={properties}
-                totalCount={totalCount}
-                isLoading={isLoading}
-                hasMore={hasMore}
-                onLoadMore={handleLoadMore}
-                activePropertyId={activePropertyId}
-                onPropertyHover={setActivePropertyId}
-                onPropertyClick={setActivePropertyId}
-                layout={view}
-                query={query}
-              />
+              <>
+                {properties.length === 0 && !isLoading && hasSearched.current && activeFilterCount > 0 && (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      No properties match your current filters.
+                    </p>
+                    <button
+                      onClick={resetFilters}
+                      className="mt-2 text-sm font-medium text-[var(--color-primary)] hover:underline"
+                    >
+                      Remove all filters to see AI results
+                    </button>
+                  </div>
+                )}
+                <SearchResultsGrid
+                  properties={properties}
+                  totalCount={totalCount}
+                  isLoading={isLoading}
+                  hasMore={hasMore}
+                  onLoadMore={handleLoadMore}
+                  activePropertyId={activePropertyId}
+                  onPropertyHover={setActivePropertyId}
+                  onPropertyClick={setActivePropertyId}
+                  layout={view}
+                  query={query}
+                />
+              </>
             )}
           </div>
         </div>

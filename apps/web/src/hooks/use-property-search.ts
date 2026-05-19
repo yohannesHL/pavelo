@@ -50,6 +50,7 @@ export interface SearchResponse {
   total: number;
   query: string;
   filtersApplied: Record<string, unknown>;
+  isAiRanked?: boolean;
 }
 
 /**
@@ -61,6 +62,7 @@ export function usePropertySearch() {
   const [total, setTotal] = useState(0);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAiRanked, setIsAiRanked] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -123,6 +125,7 @@ export function usePropertySearch() {
         }
         setTotal(data.total);
         setNextCursor(data.nextCursor);
+        setIsAiRanked(data.isAiRanked ?? false);
       } catch (e: unknown) {
         if (e instanceof DOMException && e.name === "AbortError") return; // Cancelled — ignore
         const message = e instanceof Error ? e.message : "Search failed";
@@ -155,6 +158,7 @@ export function usePropertySearch() {
     nextCursor,
     hasMore: nextCursor !== null,
     isLoading,
+    isAiRanked,
     error,
     search,
     loadMore,

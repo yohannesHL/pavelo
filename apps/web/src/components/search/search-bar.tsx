@@ -12,14 +12,15 @@ interface SearchBarProps {
   onSearch: () => void;
   suggestions?: string[];
   isLoading?: boolean;
+  showSuggestionChips?: boolean;
 }
 
 const EXAMPLE_QUERIES = [
-  "3 bed Victorian in Islington under 800k",
-  "Modern flat with balcony near tube",
-  "Family home with garden in Oxford",
-  "Period cottage in the Cotswolds",
-  "Penthouse with city views",
+  "Family home with garden in Leeds under £400k",
+  "Modern flat near university for investment",
+  "3-bed Victorian in London with period features",
+  "Quiet village cottage with countryside views",
+  "Penthouse apartment with parking in Manchester",
 ];
 
 export function SearchBar({
@@ -28,6 +29,7 @@ export function SearchBar({
   onSearch,
   suggestions = [],
   isLoading = false,
+  showSuggestionChips = false,
 }: SearchBarProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -184,6 +186,22 @@ export function SearchBar({
             >
               <Search className="h-3.5 w-3.5 shrink-0 text-[var(--muted-foreground)]" />
               <span>{suggestion}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Suggestion chips */}
+      {showSuggestionChips && query.length === 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <span className="text-xs text-[var(--muted-foreground)]">Try:</span>
+          {EXAMPLE_QUERIES.slice(0, 3).map((q) => (
+            <button
+              key={q}
+              onClick={() => handleSuggestionClick(q)}
+              className="rounded-full border border-[var(--border)] bg-[var(--background)] px-3 py-1 text-xs text-[var(--foreground)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5"
+            >
+              {q}
             </button>
           ))}
         </div>

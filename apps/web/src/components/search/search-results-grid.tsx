@@ -22,6 +22,7 @@ interface SearchResultProperty {
   latitude?: number | null;
   longitude?: number | null;
   searchScore?: number | null;
+  relevanceScore?: number;
   [key: string]: unknown;
 }
 
@@ -96,15 +97,20 @@ export function SearchResultsGrid({
             : "flex flex-col gap-3"
         }
       >
-        {properties.map((property) => (
-          <SearchPropertyCard
+        {properties.map((property, index) => (
+          <div
             key={property.id}
-            property={property}
-            isActive={activePropertyId === property.id}
-            onHover={onPropertyHover}
-            onClick={onPropertyClick}
-            layout={layout}
-          />
+            className="animate-fade-in-up"
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <SearchPropertyCard
+              property={property}
+              isActive={activePropertyId === property.id}
+              onHover={onPropertyHover}
+              onClick={onPropertyClick}
+              layout={layout}
+            />
+          </div>
         ))}
       </div>
 
