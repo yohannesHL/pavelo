@@ -1,0 +1,13 @@
+{
+  "name": "@pavelo/integration-tests",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0",
+    "ws": "^8.18.0",
+    "@types/ws": "^8.5.12"
+  }
+}
