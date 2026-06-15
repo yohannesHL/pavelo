@@ -91,7 +91,7 @@ export default function DashboardPage() {
           </Card>
         </Link>
 
-        <Link href="/voice">
+        <Link href="/chat?voice=true">
           <Card className="cursor-pointer transition-all duration-[200ms] ease-out hover:shadow-lg hover:-translate-y-0.5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">

@@ -2,7 +2,10 @@
 Pipecat Voice Pipeline (S6-03)
 
 Composes the full voice pipeline:
-  Silero VAD → Deepgram STT → LangGraph Agent → Cartesia TTS
+  VAD → STT → LangGraph Agent → TTS
+
+Uses the provider factory to resolve STT/TTS backends:
+  Deepgram/Cartesia (if API keys set) → OpenRouter → Stub
 
 Runs as a LiveKit agent — joins a room as a participant and
 processes audio bidirectionally via WebRTC.
@@ -98,9 +101,6 @@ class VoicePipeline:
             from pipecat.pipeline.runner import PipelineRunner
             from pipecat.pipeline.task import PipelineTask, PipelineParams
             from pipecat.transports.services.livekit import LiveKitTransport, LiveKitParams
-            from pipecat.services.deepgram import DeepgramSTTService
-            from pipecat.services.cartesia import CartesiaTTSService
-            from pipecat.vad.silero import SileroVADAnalyzer, VADParams
 
             from .vad import create_vad_analyzer
             from .stt import create_stt_service

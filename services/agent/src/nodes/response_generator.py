@@ -1,7 +1,7 @@
 """
 Response Generator Node (S5-04)
 
-Generates the agent's response using OpenAI with full context:
+Generates the agent's response using the configured LLM provider:
 persona, memory, tool results, and conversation history.
 Supports streaming response generation.
 """
@@ -17,6 +17,8 @@ from langchain_core.messages import AIMessage
 from src.config import settings
 from src.state import AgentState
 from src.nodes.persona import build_system_prompt
+from src.providers.factory import get_llm
+from src.providers.base import LLMMessage
 
 logger = structlog.get_logger()
 
@@ -174,21 +176,10 @@ async def response_generator_node(state: AgentState) -> dict:
 
     # Generate response
     try:
-        if settings.openai_api_key:
-            from openai import AsyncOpenAI
-            client = AsyncOpenAI(api_key=settings.openai_api_key)
-
-            response = await client.chat.completions.create(
-                model=settings.openai_model,
-                messages=openai_messages,
-                temperature=0.7,
-                max_tokens=1000,
-            )
-
-            response_text = response.choices[0].message.content or ""
-        else:
-            # No API key — generate stub response
-            response_text = _stub_response(state.intent, state.tool_results)
+        llm = get_llm()
+        llm_messages = [LLMMessage(role=m["role"], content=m["content"]) for m in openai_messages]
+        result = await llm.complete(llm_messages, temperature=0.7, max_tokens=1000)
+        response_text = result.content
 
     except Exception as e:
         logger.error("response_generator_error", error=str(e))
@@ -233,20 +224,11 @@ async def response_generator_stream(state: AgentState) -> AsyncIterator[str]:
         openai_messages.append({"role": role, "content": msg.content})
 
     try:
-        from openai import AsyncOpenAI
-        client = AsyncOpenAI(api_key=settings.openai_api_key)
+        llm = get_llm()
+        llm_messages = [LLMMessage(role=m["role"], content=m["content"]) for m in openai_messages]
 
-        stream = await client.chat.completions.create(
-            model=settings.openai_model,
-            messages=openai_messages,
-            temperature=0.7,
-            max_tokens=1000,
-            stream=True,
-        )
-
-        async for chunk in stream:
-            if chunk.choices and chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
+        async for token in llm.stream(llm_messages, temperature=0.7, max_tokens=1000):
+            yield token
 
     except Exception as e:
         logger.error("stream_error", error=str(e))

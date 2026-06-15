@@ -382,6 +382,27 @@ textarea:focus-visible {
   }
 }
 
+/* ─── Voice Toggle Pulse (S11-01) ─── */
+@keyframes voice-pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 162, 97, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(244, 162, 97, 0); }
+}
+.animate-voice-pulse-glow {
+  animation: voice-pulse-glow 2s ease-in-out infinite;
+}
+.voice-toggle-active {
+  box-shadow: 0 0 12px rgba(244, 162, 97, 0.3);
+}
+
+/* Breathe animation for home avatar (S11-06) */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+.animate-breathe {
+  animation: breathe 3s ease-in-out infinite;
+}
+
 /* ─── Billing Plan Cards (S9-07) ─── */
 @keyframes shimmer {
   0% { background-position: -200% 0; }

@@ -4,17 +4,18 @@
  * /chat — Chat landing page
  *
  * Shows the empty state with Xara intro and suggestion chips.
- * User must create a new conversation or select one from the sidebar.
+ * Handles ?voice=true param to auto-start voice session.
  */
 
 import { useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useChatStore } from "@/stores/chat-store";
 import { ChatMessageList } from "@/components/chat/chat-message-list";
 import { ChatInput } from "@/components/chat/chat-input";
 
 export default function ChatPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     messages,
     isAgentTyping,
@@ -24,7 +25,24 @@ export default function ChatPage() {
     createConversation,
     joinRoom,
     clearMessages,
+    setVoiceActive,
   } = useChatStore();
+
+  // Handle ?voice=true query param
+  useEffect(() => {
+    const voiceParam = searchParams.get("voice");
+    if (voiceParam === "true") {
+      (async () => {
+        const id = await createConversation();
+        if (id) {
+          joinRoom(id);
+          setVoiceActive(true);
+          router.replace(`/chat/${id}`);
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Listen for suggestion chip clicks
   useEffect(() => {
@@ -67,6 +85,16 @@ export default function ChatPage() {
     [conversationId, createConversation, joinRoom, router, sendMessage]
   );
 
+  const handleVoiceToggle = useCallback(async () => {
+    // Create conversation and navigate — voice will auto-connect on conversation page
+    const id = await createConversation();
+    if (id) {
+      joinRoom(id);
+      setVoiceActive(true);
+      router.push(`/chat/${id}`);
+    }
+  }, [createConversation, joinRoom, setVoiceActive, router]);
+
   return (
     <>
       {/* Connection status bar */}
@@ -90,6 +118,8 @@ export default function ChatPage() {
       <ChatInput
         onSend={handleSend}
         disabled={connectionStatus !== "connected"}
+        onVoiceToggle={handleVoiceToggle}
+        voiceDisabled={connectionStatus !== "connected"}
       />
     </>
   );

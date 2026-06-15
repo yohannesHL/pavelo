@@ -22,7 +22,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: "🏠", activeIcon: "🏠" },
   { href: "/property", label: "Search", icon: "🔍", activeIcon: "🔍" },
   { href: "/chat", label: "Chat", icon: "💬", activeIcon: "💬" },
-  { href: "/voice", label: "Voice", icon: "🎙️", activeIcon: "🎙️" },
+  { href: "/chat?voice=true", label: "Voice", icon: "🎙️", activeIcon: "🎙️" },
   { href: "/dashboard", label: "Me", icon: "👤", activeIcon: "👤" },
 ];
 

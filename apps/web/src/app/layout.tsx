@@ -83,7 +83,7 @@ export default function RootLayout({
                     Chat
                   </a>
                   <a
-                    href="/voice"
+                    href="/chat?voice=true"
                     className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                   >
                     Voice

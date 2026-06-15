@@ -23,6 +23,7 @@ export interface ChatMessage {
   visualPayloads?: VisualPayload[];
   createdAt: string;
   streaming?: boolean;
+  source?: "text" | "voice";
 }
 
 export interface VisualPayload {
@@ -64,6 +65,10 @@ interface ChatState {
   isAgentTyping: boolean;
   streamingContent: string;
 
+  // Voice integration
+  voiceActive: boolean;
+  interimTranscript: string | null;
+
   // Conversation list
   conversations: ConversationSummary[];
   conversationsLoading: boolean;
@@ -80,6 +85,11 @@ interface ChatState {
   searchConversations: (query: string) => Promise<void>;
   setConversationId: (id: string | null) => void;
   clearMessages: () => void;
+
+  // Voice actions
+  setVoiceActive: (active: boolean) => void;
+  addVoiceTranscript: (entry: { id: string; text: string; speaker: "user" | "agent" }) => void;
+  setInterimTranscript: (text: string | null) => void;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -125,6 +135,8 @@ export const useChatStore = create<ChatState>((set, get) => {
     messages: [],
     isAgentTyping: false,
     streamingContent: "",
+    voiceActive: false,
+    interimTranscript: null,
     conversations: [],
     conversationsLoading: false,
 
@@ -513,7 +525,30 @@ export const useChatStore = create<ChatState>((set, get) => {
     },
 
     clearMessages: () => {
-      set({ messages: [], streamingContent: "", isAgentTyping: false });
+      set({ messages: [], streamingContent: "", isAgentTyping: false, interimTranscript: null, voiceActive: false });
+    },
+
+    setVoiceActive: (active: boolean) => {
+      set({ voiceActive: active });
+    },
+
+    addVoiceTranscript: (entry: { id: string; text: string; speaker: "user" | "agent" }) => {
+      const { messages } = get();
+      // Deduplicate by id
+      if (messages.some((m) => m.id === entry.id)) return;
+
+      const newMessage: ChatMessage = {
+        id: entry.id,
+        role: entry.speaker === "user" ? "user" : "assistant",
+        content: entry.text,
+        createdAt: new Date().toISOString(),
+        source: "voice",
+      };
+      set({ messages: [...messages, newMessage] });
+    },
+
+    setInterimTranscript: (text: string | null) => {
+      set({ interimTranscript: text });
     },
   };
 });
