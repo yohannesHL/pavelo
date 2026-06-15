@@ -62,10 +62,7 @@ function ChatPageInner() {
         if (id) {
           joinRoom(id);
           router.push(`/chat/${id}`);
-          // Small delay to let WS join complete
-          setTimeout(() => {
-            useChatStore.getState().sendMessage(suggestion);
-          }, 300);
+          useChatStore.getState().sendMessage(suggestion);
         }
       }
     };
@@ -82,9 +79,7 @@ function ChatPageInner() {
         if (id) {
           joinRoom(id);
           router.push(`/chat/${id}`);
-          setTimeout(() => {
-            useChatStore.getState().sendMessage(content);
-          }, 300);
+          useChatStore.getState().sendMessage(content);
         }
       } else {
         sendMessage(content);
@@ -125,9 +120,9 @@ function ChatPageInner() {
       {/* Input */}
       <ChatInput
         onSend={handleSend}
-        disabled={connectionStatus !== "connected"}
+        disabled={false}
         onVoiceToggle={handleVoiceToggle}
-        voiceDisabled={connectionStatus !== "connected"}
+        voiceDisabled={connectionStatus === "disconnected" || connectionStatus === "error"}
       />
     </>
   );

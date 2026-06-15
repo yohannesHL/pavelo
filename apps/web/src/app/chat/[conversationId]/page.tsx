@@ -146,10 +146,10 @@ export default function ConversationPage() {
       {/* Input */}
       <ChatInput
         onSend={handleSend}
-        disabled={connectionStatus !== "connected"}
+        disabled={false}
         voiceActive={voiceActive}
         onVoiceToggle={handleVoiceToggle}
-        voiceDisabled={connectionStatus !== "connected"}
+        voiceDisabled={connectionStatus === "disconnected" || connectionStatus === "error"}
         voiceConnectionState={voice.connectionState}
         isMuted={voice.isMuted}
         onToggleMute={voice.toggleMute}
