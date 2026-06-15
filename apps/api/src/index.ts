@@ -248,6 +248,32 @@ app.post("/api/v1/viewings/book", async (request, reply) => {
   }
 });
 
+// --- RAG Trigger Webhook (S12-07) ---
+app.post("/api/v1/rag/trigger", async (request, reply) => {
+  const body = request.body as { propertyId?: string; action?: string; data?: Record<string, unknown> };
+  
+  if (!body?.propertyId) {
+    return reply.code(400).send({ error: "propertyId required" });
+  }
+
+  const agentUrl = process.env.AGENT_SERVICE_URL || "http://localhost:8000";
+  
+  try {
+    // Forward to agent service RAG ingest endpoint
+    const res = await fetch(`${agentUrl}/api/v1/rag/ingest`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ property_data: body.data || { id: body.propertyId } }),
+    });
+    
+    const result = await res.json();
+    return reply.send({ success: true, rag: result, action: body.action || "ingest" });
+  } catch (error: unknown) {
+    console.error("RAG trigger failed:", error);
+    return reply.code(502).send({ error: "Failed to trigger RAG pipeline", details: (error as Error).message });
+  }
+});
+
 // --- Start Server ---
 const port = Number(process.env.API_PORT) || 4000;
 const host = process.env.HOST || "0.0.0.0";

@@ -381,6 +381,15 @@ export const appRouter = router({
             ownerId: ctx.userId,
           },
         });
+
+        // Fire-and-forget RAG ingest
+        const agentUrl = process.env.AGENT_SERVICE_URL || "http://localhost:8000";
+        fetch(`${agentUrl}/api/v1/rag/ingest`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ property_data: { ...property, id: property.id } }),
+        }).catch(() => {}); // Non-blocking
+
         return property;
       }),
 
@@ -416,6 +425,15 @@ export const appRouter = router({
           where: { id: input.id },
           data: input.data,
         });
+
+        // Fire-and-forget RAG ingest on update
+        const agentUrl = process.env.AGENT_SERVICE_URL || "http://localhost:8000";
+        fetch(`${agentUrl}/api/v1/rag/ingest`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ property_data: { ...updated, id: updated.id } }),
+        }).catch(() => {}); // Non-blocking
+
         return updated;
       }),
 

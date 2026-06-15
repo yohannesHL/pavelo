@@ -255,10 +255,25 @@ async function relayToAgent(
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("Agent relay error:", message);
+
+    // Send a fallback response so the user isn't left hanging
+    const isConnectionError = message.includes("ECONNREFUSED") || message.includes("fetch failed");
+    const errorContent = isConnectionError
+      ? "I'm currently unavailable — the AI service is offline. Please try again in a moment."
+      : "Sorry, I'm having trouble processing your request. Please try again.";
+
+    broadcastToRoom(conversationId, {
+      type: "agent_response",
+      conversationId,
+      content: errorContent,
+      streaming: false,
+      done: true,
+    });
+
     broadcastToRoom(conversationId, {
       type: "error",
       conversationId,
-      content: "Sorry, I'm having trouble connecting. Please try again.",
+      content: errorContent,
     });
   }
 }
